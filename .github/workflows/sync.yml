@@ -19,7 +19,7 @@ jobs:
         run: |
           # Configura a URL com o token de autenticação
           # Troque a URL abaixo pela URL do seu projeto no GitLab (sem o https://)
-          GITLAB_REPO="https://tools.ages.pucrs.br/fluxo-ages-2.0-alunos/backend-fluxo-alunos.git"
+          GITLAB_REPO="tools.ages.pucrs.br/fluxo-ages-2.0-alunos/backend-fluxo-alunos.git"
           
           git remote add gitlab "https://oauth2:${{ secrets.GITLAB_TOKEN }}@$GITLAB_REPO"
           

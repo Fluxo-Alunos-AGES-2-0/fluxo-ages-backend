@@ -1,6 +1,8 @@
 services:
+  # --- BANCO DE DADOS ---
   db:
     image: postgres:15-alpine
+    env_file: .env
     container_name: fluxo-db
     restart: always
     environment:
@@ -11,6 +13,23 @@ services:
       - "${DB_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  # --- SEU BACKEND (A MUDANÇA ESTÁ AQUI!) ---
+  app:
+    build: . # <--- Indica que existe um Dockerfile na pasta atual
+    container_name: fluxo-api
+    restart: always
+    ports:
+      - "${API_PORT}:8081" # Mapeia a porta do .env para a porta 8081 do container
+    environment:
+      # CONFIGURAÇÃO CRUCIAL: O host do banco é o nome do serviço 'db'
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      # Garante que o Spring saiba que deve rodar na 8081
+      SERVER_PORT: 8081
+    depends_on:
+      - db # <--- Só sobe o app depois que o db estiver pronto
 
 volumes:
   postgres_data:
