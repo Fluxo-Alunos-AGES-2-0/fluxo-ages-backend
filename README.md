@@ -97,4 +97,3 @@ Quando terminar o dia de trabalho, sempre desligue os containers rodando:
 ```bash
 docker-compose down
 ```
-teste
