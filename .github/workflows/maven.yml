@@ -28,8 +28,16 @@ jobs:
         distribution: 'temurin'
         cache: maven
 
+    - name: Creating .env
+      run: |
+          echo "API_PORT=${{ secrets.API_PORT }}" >> .env
+          echo "DB_USER=${{ secrets.DB_USER }}" >> .env
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+          echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+          echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
+
     - name: Build db
-      run: API_PORT=${{ secrets.API_PORT }} DB_HOST=${{ secrets.DB_HOST }} DB_PASSWORD=${{ secrets.DB_PASSWORD }} DB_USER=${{ secrets.DB_USER }} DB_NAME=${{ secrets.DB_NAME }} DB_PORT=${{ secrets.DB_PORT }} docker compose up -d db
+      run: docker compose up -d db
     - name: Build with Maven
       run: mvn -B verify --file pom.xml
 
