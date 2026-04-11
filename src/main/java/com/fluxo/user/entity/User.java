@@ -3,40 +3,27 @@ package com.fluxo.user.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "tb_users") // Usamos tb_users porque 'user' é uma palavra reservada no Postgres
+@Table(name = "tb_user") 
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "user_id")
+    private Integer id;
 
-    @Column(unique = true, nullable = false)
-    private String username;
+    @Column(nullable = false, length = 255)
+    private String name;
 
-    @Column(nullable = false)
+    @Column(name = "enrollment_number", nullable = false, length = 20)
+    private String enrollmentNumber;
+
+    @Column(nullable = false, length = 255)
+    private String email;
+
+    @Column(nullable = false, length = 255)
     private String password;
 
-    private String name;
-    private String email;
+    @Column(nullable = false, length = 20)
     private String role;
 
-    // Construtor vazio (Obrigatório para o JPA)
-    public User() {}
-
-    // Construtor com parâmetros para facilitar a criação
-    public User(String username, String password, String name, String email, String role) {
-        this.username = username;
-        this.password = password;
-        this.name = name;
-        this.email = email;
-        this.role = role;
-    }
-
-    // Getters
-    public Long getId() { return id; }
-    public String getUsername() { return username; }
-    public String getPassword() { return password; }
-    public String getName() { return name; }
-    public String getEmail() { return email; }
-    public String getRole() { return role; }
 }
