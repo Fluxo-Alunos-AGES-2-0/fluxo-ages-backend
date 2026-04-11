@@ -1,4 +1,4 @@
-package com.fluxo.auth.config;
+package com.fluxo.infra.config;
 import org.springframework.http.HttpMethod;
 
 import org.springframework.context.annotation.Bean;
