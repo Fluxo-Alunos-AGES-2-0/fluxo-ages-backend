@@ -3,6 +3,8 @@ package com.fluxo.auth.controller;
 import com.fluxo.auth.dto.LoginRequest;
 import com.fluxo.auth.dto.LoginResponse;
 import com.fluxo.auth.dto.UserResponse;
+import com.fluxo.user.entity.User;
+import com.fluxo.user.repository.UserRepository;
 import com.fluxo.auth.service.JwtService;
 
 import jakarta.validation.Valid;
@@ -12,52 +14,52 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
 
     private final JwtService jwtService;
+    private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
 
-    // A senha "senha123" gerada via BCrypt para simular o banco
-    private static final String MOCK_PASSWORD_HASH = "$2a$10$wT0X8U8hFvJ8F9.7O.o4/Ou7oR2U.gH/3xUoYx4fM8qM5WlZ5/jK2";
-
-    public AuthController(JwtService jwtService) {
+    // Injetamos o UserRepository aqui
+    public AuthController(JwtService jwtService, UserRepository userRepository) {
         this.jwtService = jwtService;
+        this.userRepository = userRepository;
         this.passwordEncoder = new BCryptPasswordEncoder();
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
         
-        // 1. Simula a verificação do usuário no banco
-        if (!"joaosilva".equals(request.username())) {
+        // 1. Busca o usuário no Banco de Dados Real
+        Optional<User> userOptional = userRepository.findByUsername(request.username());
+
+        if (userOptional.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Credenciais inválidas"));
         }
 
-        // 2. Compara a senha enviada no body com o Hash salvo no banco
-        boolean isPasswordValid = passwordEncoder.matches(request.password(), MOCK_PASSWORD_HASH);
+        User user = userOptional.get();
+
+        // 2. Compara a senha do Front-end com a senha criptografada que está no Banco
+        boolean isPasswordValid = passwordEncoder.matches(request.password(), user.getPassword());
         
         if (!isPasswordValid) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Credenciais inválidas"));
         }
 
-        // 3. Monta o usuário mockado
-        UserResponse user = new UserResponse(1L, "João Silva", "joao.silva@edu.br", "STUDENT");
+        // 3. Monta os dados para o Payload
+        UserResponse userResponse = new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getRole());
         
-        // 4. Gera o Token JWT
-        String token = jwtService.generateToken(user.id(), user.name(), user.role());
+        // 4. Gera o Token
+        String token = jwtService.generateToken(user.getId(), user.getName(), user.getRole());
 
-        // 5. Retorna o sucesso (200 OK)
-        LoginResponse response = new LoginResponse(token, jwtService.getExpirationTime(), user);
-        
+        // 5. Retorna 200 OK
+        LoginResponse response = new LoginResponse(token, jwtService.getExpirationTime(), userResponse);
         return ResponseEntity.ok(response);
     }
-    @GetMapping("/ping")
-        public String ping() {
-        return "O Controller está vivo!";
-}
 }
