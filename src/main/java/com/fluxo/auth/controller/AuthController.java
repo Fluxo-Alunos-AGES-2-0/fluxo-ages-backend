@@ -1,65 +1,42 @@
 package com.fluxo.auth.controller;
 
+import com.fluxo.auth.dto.ForgotPasswordRequest;
 import com.fluxo.auth.dto.LoginRequest;
 import com.fluxo.auth.dto.LoginResponse;
-import com.fluxo.auth.dto.UserResponse;
-import com.fluxo.user.entity.User;
-import com.fluxo.user.repository.UserRepository;
-import com.fluxo.auth.service.JwtService;
-
+import com.fluxo.auth.dto.ResetPasswordRequest;
+import com.fluxo.auth.service.AuthService;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
 
-    private final JwtService jwtService;
-    private final UserRepository userRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
+    private final AuthService authService;
 
-    // Injetamos o UserRepository aqui
-    public AuthController(JwtService jwtService, UserRepository userRepository) {
-        this.jwtService = jwtService;
-        this.userRepository = userRepository;
-        this.passwordEncoder = new BCryptPasswordEncoder();
+    public AuthController(AuthService authService) {
+        this.authService = authService;
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
-        
-        // 1. Busca o usuário no Banco de Dados Real
-        Optional<User> userOptional = userRepository.findByUsername(request.username());
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        return ResponseEntity.ok(authService.login(request));
+    }
 
-        if (userOptional.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "Credenciais inválidas"));
-        }
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Map<String, String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        return ResponseEntity.accepted()
+                .body(Map.of("message", "Se o email existir, as instrucoes de recuperacao serao enviadas"));
+    }
 
-        User user = userOptional.get();
-
-        // 2. Compara a senha do Front-end com a senha criptografada que está no Banco
-        boolean isPasswordValid = passwordEncoder.matches(request.password(), user.getPassword());
-        
-        if (!isPasswordValid) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "Credenciais inválidas"));
-        }
-
-        // 3. Monta os dados para o Payload
-        UserResponse userResponse = new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getRole());
-        
-        // 4. Gera o Token
-        String token = jwtService.generateToken(user.getId(), user.getName(), user.getRole());
-
-        // 5. Retorna 200 OK
-        LoginResponse response = new LoginResponse(token, jwtService.getExpirationTime(), userResponse);
-        return ResponseEntity.ok(response);
+    @PostMapping("/reset-password")
+    public ResponseEntity<Map<String, String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        return ResponseEntity.ok(Map.of("message", "Senha redefinida com sucesso"));
     }
 }
