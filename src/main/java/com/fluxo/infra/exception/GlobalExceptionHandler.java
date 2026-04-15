@@ -1,5 +1,7 @@
 package com.fluxo.infra.exception;
 
+import com.fluxo.attendance.exception.ActiveAttendanceNotFoundException;
+import com.fluxo.attendance.exception.AttendanceAlreadyOpenException;
 import com.fluxo.auth.exception.InvalidCredentialsException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<Map<String, String>> handleInvalidCredentials(InvalidCredentialsException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(AttendanceAlreadyOpenException.class)
+    public ResponseEntity<Map<String, String>> handleAttendanceAlreadyOpen(AttendanceAlreadyOpenException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ActiveAttendanceNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleActiveAttendanceNotFound(ActiveAttendanceNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("error", ex.getMessage()));
     }
 
