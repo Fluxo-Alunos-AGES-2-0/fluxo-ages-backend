@@ -1,11 +1,15 @@
 package com.fluxo.auth.dto;
 
-import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-public record ResetPasswordRequest(
-        @NotBlank(message = "O token e obrigatorio")
-        String token,
-        @NotBlank(message = "A nova senha e obrigatoria")
-        String newPassword
-) {
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class ResetPasswordRequest {
+    private String token;
+    private String newPassword;
 }
