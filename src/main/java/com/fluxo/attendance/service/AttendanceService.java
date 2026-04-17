@@ -70,7 +70,7 @@ public class AttendanceService {
         attendance.setDescription(request.description());
         attendance.setSessionTimeSeconds(sessionTimeSeconds);
         attendance.setSubmittedAt(endTime);
-        attendance.setStatus(AttendanceStatus.PENDENTE);
+        attendance.setStatus(AttendanceStatus.APROVADO);
 
         Attendance savedAttendance = attendanceRepository.save(attendance);
 
