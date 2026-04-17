@@ -19,6 +19,7 @@ services:
     build: . # <--- Indica que existe um Dockerfile na pasta atual
     container_name: fluxo-api
     restart: always
+    env_file: .env
     ports:
       - "${API_PORT}:8081" # Mapeia a porta do .env para a porta 8081 do container
     environment:
