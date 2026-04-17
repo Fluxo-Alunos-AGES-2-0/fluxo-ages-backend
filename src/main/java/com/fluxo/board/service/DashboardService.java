@@ -1,18 +1,37 @@
 package com.fluxo.board.service;
 
+import com.fluxo.attendance.entity.Attendance;
+import com.fluxo.attendance.entity.AttendanceStatus;
+import com.fluxo.attendance.repository.AttendanceRepository;
 import com.fluxo.board.dto.*;
+import com.fluxo.student.dto.StudentProfileResponseDto;
+import com.fluxo.student.service.StudentService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
+@RequiredArgsConstructor
 public class DashboardService {
 
-    private long TOTAL_SECONDS = 216000;
+    private static final long TOTAL_SECONDS = 216000L;
+
+    private final StudentService studentService;
+    private final AttendanceRepository attendanceRepository;
 
     public DashboardResponseDTO getDashboard(Long userId) {
+        StudentProfileResponseDto studentProfile = studentService.getLoggedStudentProfile()
+                .orElseThrow(() -> new IllegalStateException("Perfil do aluno nao encontrado"));
 
-        // All the subject are mocked
-        long completed = 108000;
-        long remaining = TOTAL_SECONDS - completed;
+        List<Attendance> approved = attendanceRepository
+                .findByStudentUserIdAndStatus(userId, AttendanceStatus.APROVADO);
+
+        long completed = approved.stream()
+                .mapToLong(a -> a.getSessionTimeSeconds() != null ? a.getSessionTimeSeconds() : 0L)
+                .sum();
+
+        long remaining = Math.max(0L, TOTAL_SECONDS - completed);
         double percentual = (completed * 100.0) / TOTAL_SECONDS;
 
         HoursDTO hours = HoursDTO.builder()
@@ -22,21 +41,29 @@ public class DashboardService {
                 .percentual(percentual)
                 .build();
 
-        AttendanceDTO attendance = AttendanceDTO.builder()
-                .totalClasses(20)
-                .presences(17)
-                .absences(3)
+        AttendanceDTO attendanceDTO = AttendanceDTO.builder()
+                .totalClasses(studentProfile.attendance().totalClasses())
+                .presences(studentProfile.attendance().presences())
+                .absences(studentProfile.attendance().absences())
                 .build();
 
+        ProjectDTO projectDTO = studentProfile.currentProject() != null
+                ? new ProjectDTO(studentProfile.currentProject().id().longValue(), studentProfile.currentProject().name())
+                : null;
+
+        AuxDTO professorDTO = studentProfile.professor() != null
+                ? new AuxDTO(studentProfile.professor().id(), studentProfile.professor().name())
+                : null;
+
         ProfileDTO profile = ProfileDTO.builder()
-                .id(userId)
-                .name("João Silva")
-                .email("joao.silva@edu.br")
-                .avatarUrl("https://example.com/avatar.jpg")
-                .agesLevel(2)
-                .currentProject(new ProjectDTO(1L, "Fluxo Ages 2.0"))
-                .professor(new AuxDTO(1L, "Prof. Dilnei Venturini"))
-                .attendance(attendance)
+                .id(studentProfile.id())
+                .name(studentProfile.name())
+                .email(studentProfile.email())
+                .avatarUrl(studentProfile.avatarUrl())
+                .agesLevel(studentProfile.agesLevel())
+                .currentProject(projectDTO)
+                .professor(professorDTO)
+                .attendance(attendanceDTO)
                 .build();
 
         return new DashboardResponseDTO(profile, hours);
