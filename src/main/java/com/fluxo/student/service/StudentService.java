@@ -2,6 +2,7 @@ package com.fluxo.student.service;
 
 import com.fluxo.project.entity.Project;
 import com.fluxo.student.dto.StudentProfileResponseDto;
+import com.fluxo.student.entity.StudentProfile;
 import com.fluxo.user.entity.User;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -21,12 +22,12 @@ public class StudentService {
     public Optional<StudentProfileResponseDto> getLoggedStudentProfile() {
         User authenticatedUser = getAuthenticatedUser();
 
-        Integer teamId = findTeamIdByStudentUserId(authenticatedUser.getId());
-        if (teamId == null) {
+        StudentProfile studentProfile = findStudentProfileByUserId(authenticatedUser.getId());
+        if (studentProfile == null || studentProfile.getTeam() == null) {
             return Optional.empty();
         }
 
-        Project project = findProjectByTeamId(teamId);
+        Project project = findProjectByTeamId(studentProfile.getTeam().getId());
         if (project == null) {
             return Optional.empty();
         }
@@ -35,12 +36,9 @@ public class StudentService {
         int absences = countAttendanceByStatus(authenticatedUser.getId(), false);
         int totalClasses = presences + absences;
 
-        // avatarUrl, agesLevel e professor ficam como null por enquanto,
-        // pois não foi encontrada uma origem clara para esses dados no projeto.
-
-        String avatarUrl = null;
-        Integer agesLevel = null;
-        StudentProfileResponseDto.ProfessorDto professor = null;
+        String avatarUrl = studentProfile.getAvatarUrl();
+        Integer agesLevel = parseAgesLevel(studentProfile.getAgpaPosition());
+        StudentProfileResponseDto.ProfessorDto professor = buildProfessorDto(project);
 
         return Optional.of(new StudentProfileResponseDto(
                 authenticatedUser.getId(),
@@ -65,19 +63,20 @@ public class StudentService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !(authentication.getPrincipal() instanceof User user)) {
-            throw new IllegalStateException("Usuário autenticado não encontrado.");
+            throw new IllegalStateException("Usuario autenticado nao encontrado.");
         }
 
         return user;
     }
 
-    private Integer findTeamIdByStudentUserId(Long userId) {
-        List<Integer> result = entityManager.createQuery("""
-            SELECT sp.team.id
+    private StudentProfile findStudentProfileByUserId(Long userId) {
+        List<StudentProfile> result = entityManager.createQuery("""
+            SELECT sp
             FROM StudentProfile sp
             WHERE sp.studentUser.id = :userId
-            """, Integer.class)
+            """, StudentProfile.class)
                 .setParameter("userId", userId)
+                .setMaxResults(1)
                 .getResultList();
 
         return result.isEmpty() ? null : result.get(0);
@@ -94,6 +93,29 @@ public class StudentService {
                 .getResultList();
 
         return result.isEmpty() ? null : result.get(0);
+    }
+
+    private Integer parseAgesLevel(String agpaPosition) {
+        if (agpaPosition == null || agpaPosition.isBlank()) {
+            return null;
+        }
+
+        try {
+            return Integer.valueOf(agpaPosition.trim());
+        } catch (NumberFormatException exception) {
+            throw new IllegalStateException("Valor de AGES level invalido para o aluno autenticado.");
+        }
+    }
+
+    private StudentProfileResponseDto.ProfessorDto buildProfessorDto(Project project) {
+        if (project.getProfessorUser() == null) {
+            return null;
+        }
+
+        return new StudentProfileResponseDto.ProfessorDto(
+                project.getProfessorUser().getId(),
+                project.getProfessorUser().getName()
+        );
     }
 
     private int countAttendanceByStatus(Long userId, boolean status) {
