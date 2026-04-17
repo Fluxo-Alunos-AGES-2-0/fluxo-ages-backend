@@ -8,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
-    // Busca o usuário comparando o parâmetro 'username' com o atributo 'name' da entidade User
-    @Query("SELECT u FROM User u WHERE u.name = :username")
-    Optional<User> findByUsername(@Param("username") String username);
+    // Busca o usuário comparando o parâmetro 'email' com o atributo 'email' da entidade User
+    @Query("SELECT e FROM User e WHERE e.email = :email")
+    Optional<User> findByEmail(@Param("email") String email);
 }

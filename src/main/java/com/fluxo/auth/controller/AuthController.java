@@ -47,7 +47,7 @@ public class AuthController {
         }
 
         authService.forgotPassword(forgotPasswordRequest);
-        return ResponseEntity.accepted()
+        return ResponseEntity.ok()
                 .body(Map.of("message", "Se o email existir, as instrucoes de recuperacao serao enviadas"));
     }
 

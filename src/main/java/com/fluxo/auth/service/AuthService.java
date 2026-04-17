@@ -37,7 +37,7 @@ public class AuthService {
     }
 
     public LoginResponse login(LoginRequest request) {
-        User user = userRepository.findByUsername(request.username())
+        User user = userRepository.findByEmail(request.username())
                 .orElseThrow(() -> new InvalidCredentialsException("Credenciais invalidas"));
 
         boolean isPasswordValid = passwordEncoder.matches(request.password(), user.getPassword());
@@ -57,9 +57,13 @@ public class AuthService {
             throw new IllegalArgumentException("Digite seu e-mail.");
         }
 
-        User user = userRepository.findByUsername(forgotPasswordRequest.getEmail()).orElseThrow(
-            () -> new IllegalArgumentException("E-mail não cadastrado.")
-        );
+        var userOptional = userRepository.findByEmail(forgotPasswordRequest.getEmail());
+
+        if (userOptional.isEmpty()) {
+            return; // Retorna sem fazer nada
+        }
+
+        User user = userOptional.get();
 
         String token = UUID.randomUUID().toString();
         PasswordResetToken passwordResetToken = new PasswordResetToken();
