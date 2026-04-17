@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -83,16 +84,6 @@ public class AttendanceService {
         );
     }
 
-    private User getAuthenticatedUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !(authentication.getPrincipal() instanceof User user)) {
-            throw new IllegalStateException("Usuário autenticado não encontrado.");
-        }
-
-        return user;
-    }
-
     public Optional<ActiveAttendanceResponseDto> findActiveAttendance() {
         User authenticatedUser = getAuthenticatedUser();
 
@@ -102,5 +93,38 @@ public class AttendanceService {
                         attendance.getId(),
                         attendance.getStartTime()
                 ));
+    }
+    public List<StopAttendanceResponseDto> getMyApprovedAttendances() {
+        User authenticatedUser = getAuthenticatedUser();
+
+        return attendanceRepository
+                .findByStudentUserIdAndStatus(authenticatedUser.getId(), AttendanceStatus.APROVADO)
+                .stream()
+                .map(attendance -> new StopAttendanceResponseDto(
+                        attendance.getId(),
+                        attendance.getDescription(),
+                        attendance.getStartTime(),
+                        attendance.getEndTime(),
+                        attendance.getSessionTimeSeconds(),
+                        attendance.getStatus()
+                ))
+                .toList();
+    }
+
+    public int getTotalApprovedSeconds(Long userId) {
+        return attendanceRepository
+                .findByStudentUserIdAndStatus(userId, AttendanceStatus.APROVADO)
+                .stream()
+                .mapToInt(Attendance::getSessionTimeSeconds)
+                .sum();
+    }
+    private User getAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !(authentication.getPrincipal() instanceof User user)) {
+            throw new IllegalStateException("Usuário autenticado não encontrado.");
+        }
+
+        return user;
     }
 }
