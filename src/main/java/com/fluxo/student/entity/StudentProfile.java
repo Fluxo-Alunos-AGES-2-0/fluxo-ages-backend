@@ -16,23 +16,23 @@ public class StudentProfile {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "profile_id")
+    @Column(name = "id_profile")
     private Integer id;
 
-    @Column(name = "agpa_position")
-    private String agpaPosition;
+    @Column(name = "ages_position", nullable = false)
+    private Integer agesPosition;
 
-    @Column(length = 20)
+    @Column(nullable = false)
     private String course;
 
-    @Column(name = "avatar_url")
-    private String avatarUrl;
+    @Column(name = "image_url")
+    private String imageUrl;
 
-    @ManyToOne
-    @JoinColumn(name = "student_user_id", referencedColumnName = "user_id")
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "id_user_student", referencedColumnName = "id_user", nullable = false)
     private User studentUser;
 
-    @ManyToOne
-    @JoinColumn(name = "team_id", referencedColumnName = "team_id")
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "id_team", referencedColumnName = "id_team", nullable = false)
     private Team team;
 }

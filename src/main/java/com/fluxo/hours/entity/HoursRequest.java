@@ -13,25 +13,25 @@ public class HoursRequest {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "hours_request_id")
+    @Column(name = "id_hours_request")
     private Integer id;
 
+    @Column(nullable = false)
     private String activities;
-    private Integer type;
 
-    @Column(name = "hours_worked")
-    private LocalTime hoursWorked;
+    @Column(name = "worked_hours", nullable = false)
+    private LocalTime workedHours;
 
-    @Column(name = "hours_remaining")
+    @Column(name = "hours_remaining", nullable = false)
     private LocalTime hoursRemaining;
 
-    @Column(name = "entry_time")
-    private LocalDateTime entryTime;
+    @Column(name = "entry_hour", nullable = false)
+    private LocalDateTime entryHour;
 
-    @Column(name = "exit_time")
-    private LocalDateTime exitTime;
+    @Column(name = "exit_hour", nullable = false)
+    private LocalDateTime exitHour;
 
-    @ManyToOne
-    @JoinColumn(name = "student_user_id", referencedColumnName = "user_id")
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "id_user_student", referencedColumnName = "id_user", nullable = false)
     private User studentUser;
 }

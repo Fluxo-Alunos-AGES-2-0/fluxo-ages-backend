@@ -20,7 +20,7 @@ public class Attendance {
     private Long id;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "aluno_id", referencedColumnName = "user_id", nullable = false)
+    @JoinColumn(name = "aluno_id", referencedColumnName = "id_user", nullable = false)
     private User studentUser;
 
     @Column(name = "data_envio")
@@ -35,10 +35,10 @@ public class Attendance {
     @Column(name = "total_horas_sessao")
     private Integer sessionTimeSeconds;
 
-    @Column(name = "descricao", length = 255)
+    @Column(name = "descricao")
     private String description;
 
-    @Column(name = "observacao", length = 255)
+    @Column(name = "observacao")
     private String observation;
 
     @Enumerated(EnumType.STRING)

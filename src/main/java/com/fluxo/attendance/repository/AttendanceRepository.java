@@ -9,8 +9,8 @@ import java.util.Optional;
 
 public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
 
-    boolean existsByStudentUserIdAndEndTimeIsNull(Long userId);
+    boolean existsByStudentUserIdAndEndTimeIsNull(Integer userId);
 
-    Optional<Attendance> findFirstByStudentUserIdAndEndTimeIsNullOrderByStartTimeDesc(Long userId);
-    List<Attendance> findByStudentUserIdAndStatus(Long userId, AttendanceStatus status);
+    Optional<Attendance> findFirstByStudentUserIdAndEndTimeIsNullOrderByStartTimeDesc(Integer userId);
+    List<Attendance> findByStudentUserIdAndStatus(Integer userId, AttendanceStatus status);
 }

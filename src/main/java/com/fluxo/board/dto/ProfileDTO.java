@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class ProfileDTO {
-    private Long id;
+    private Integer id;
     private String name;
     private String email;
     private String avatarUrl;

@@ -1,27 +1,21 @@
-package com.fluxo.academic.entity;
+package com.fluxo.board.entity;
 
 import com.fluxo.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
-
 @Entity
-@Table(name = "lesson_session")
+@Table(name = "teacher_examining_board")
 @Getter @Setter @NoArgsConstructor
-public class ClassSession {
+public class TeacherExaminingBoard {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_lesson_session")
     private Integer id;
 
-    @Column(nullable = false)
-    private LocalDate date;
-
     @ManyToOne(optional = false)
-    @JoinColumn(name = "id_class", referencedColumnName = "id_class", nullable = false)
-    private ClassGroup classGroup;
+    @JoinColumn(name = "id_examining_board", referencedColumnName = "id", nullable = false)
+    private ExaminingBoard examiningBoard;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "id_user_teacher", referencedColumnName = "id_user", nullable = false)

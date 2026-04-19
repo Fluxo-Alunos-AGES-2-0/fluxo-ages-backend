@@ -13,22 +13,22 @@ public class Schedule {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "schedule_id")
+    @Column(name = "id_schedule")
     private Integer id;
 
-    @Column(length = 10)
+    @Column(nullable = false, length = 10, columnDefinition = "char(10)")
     private String event;
 
-    @Column(name = "event_date")
+    @Column(name = "event_date", nullable = false)
     private LocalDate eventDate;
 
-    @Column(name = "event_time")
+    @Column(name = "event_time", nullable = false)
     private LocalTime eventTime;
 
-    @Column(name = "event_period", length = 10)
+    @Column(name = "event_period", nullable = false, length = 10, columnDefinition = "char(10)")
     private String eventPeriod;
 
-    @ManyToOne
-    @JoinColumn(name = "admin_user_id", referencedColumnName = "user_id")
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "id_user_admin", referencedColumnName = "id_user", nullable = false)
     private User adminUser;
 }

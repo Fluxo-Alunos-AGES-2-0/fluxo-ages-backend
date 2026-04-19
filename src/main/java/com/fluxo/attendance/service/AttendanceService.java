@@ -111,7 +111,7 @@ public class AttendanceService {
                 .toList();
     }
 
-    public int getTotalApprovedSeconds(Long userId) {
+    public int getTotalApprovedSeconds(Integer userId) {
         return attendanceRepository
                 .findByStudentUserIdAndStatus(userId, AttendanceStatus.APROVADO)
                 .stream()

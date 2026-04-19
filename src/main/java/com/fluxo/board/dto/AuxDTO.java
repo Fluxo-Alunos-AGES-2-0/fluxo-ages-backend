@@ -7,6 +7,6 @@ import lombok.Data;
 @AllArgsConstructor
 
 public class AuxDTO {
-    private Long id;
+    private Integer id;
     private String name;
 }

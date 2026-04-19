@@ -6,6 +6,6 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class ProjectDTO {
-    private Long id;
+    private Integer id;
     private String name;
 }

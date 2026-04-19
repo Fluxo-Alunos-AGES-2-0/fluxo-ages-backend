@@ -2,30 +2,29 @@ package com.fluxo.report.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Entity
 @Table(name = "hours_report")
-@PrimaryKeyJoinColumn(name = "report_id") // Faz o link com o ID da classe Report
+@PrimaryKeyJoinColumn(name = "id_report")
 @Getter @Setter @NoArgsConstructor
 public class HoursReport extends Report {
 
-    @Column(length = 10)
+    @Column(nullable = false)
     private String activities;
 
-    @Column(name = "activity_type", length = 10)
-    private String activityType;
+    @Column(name = "activity_type", nullable = false)
+    private Integer activityType;
 
-    @Column(name = "entry_time")
-    private LocalDate entryTime;
+    @Column(name = "entry_time", nullable = false, columnDefinition = "timestamp with time zone")
+    private OffsetDateTime entryTime;
 
-    @Column(name = "exit_time")
-    private LocalDate exitTime;
+    @Column(name = "exit_time", nullable = false, columnDefinition = "timestamp with time zone")
+    private OffsetDateTime exitTime;
 
-    @Column(name = "total_hours")
-    private LocalDateTime totalHours;
+    @Column(name = "total_time_seconds", nullable = false)
+    private Integer totalTimeSeconds;
 
-    @Column(name = "rejection_reason", length = 100)
-    private String rejectionReason;
+    @Column(name = "rejection_justification")
+    private String rejectionJustification;
 }

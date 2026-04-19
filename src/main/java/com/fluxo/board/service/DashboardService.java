@@ -20,7 +20,7 @@ public class DashboardService {
     private final StudentService studentService;
     private final AttendanceRepository attendanceRepository;
 
-    public DashboardResponseDTO getDashboard(Long userId) {
+    public DashboardResponseDTO getDashboard(Integer userId) {
         StudentProfileResponseDto studentProfile = studentService.getLoggedStudentProfile()
                 .orElseThrow(() -> new IllegalStateException("Perfil do aluno nao encontrado"));
 
@@ -48,7 +48,7 @@ public class DashboardService {
                 .build();
 
         ProjectDTO projectDTO = studentProfile.currentProject() != null
-                ? new ProjectDTO(studentProfile.currentProject().id().longValue(), studentProfile.currentProject().name())
+                ? new ProjectDTO(studentProfile.currentProject().id(), studentProfile.currentProject().name())
                 : null;
 
         AuxDTO professorDTO = studentProfile.professor() != null

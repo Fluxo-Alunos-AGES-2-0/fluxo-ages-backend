@@ -5,15 +5,15 @@ import lombok.*;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "class_group")
+@Table(name = "class")
 @Getter @Setter @NoArgsConstructor
 public class ClassGroup {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "class_group_id")
+    @Column(name = "id_class")
     private Integer id;
 
-    @Column(name = "class_date")
-    private LocalDate classDate;
+    @Column(name = "date", nullable = false)
+    private LocalDate date;
 }

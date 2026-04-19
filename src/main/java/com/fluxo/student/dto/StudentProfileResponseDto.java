@@ -1,7 +1,7 @@
 package com.fluxo.student.dto;
 
 public record StudentProfileResponseDto(
-        Long id,
+        Integer id,
         String name,
         String email,
         String avatarUrl,
@@ -18,7 +18,7 @@ public record StudentProfileResponseDto(
     }
 
     public record ProfessorDto(
-            Long id,
+            Integer id,
             String name
     ) {
     }

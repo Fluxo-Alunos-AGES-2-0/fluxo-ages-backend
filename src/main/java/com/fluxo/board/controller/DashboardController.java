@@ -18,7 +18,7 @@ public class DashboardController {
 
     @GetMapping
     public ResponseEntity<DashboardResponseDTO> getDashboard(
-            @AuthenticationPrincipal(expression = "id") Long userId
+            @AuthenticationPrincipal(expression = "id") Integer userId
     ) {
         return ResponseEntity.ok(dashboardService.getDashboard(userId));
     }
