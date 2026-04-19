@@ -37,13 +37,13 @@ public class AuthService {
     }
 
     public LoginResponse login(LoginRequest request) {
-        String identifier = request.email() != null && !request.email().isBlank() ? request.email() : request.username();
+        String identifier = request.username();
         
         if (identifier == null || identifier.isBlank()) {
             throw new InvalidCredentialsException("Credenciais invalidas");
         }
 
-        User user = userRepository.findByEmail(identifier)
+        User user = userRepository.findByIdentifier(identifier)
                 .orElseThrow(() -> new InvalidCredentialsException("Credenciais invalidas"));
 
         boolean isPasswordValid = passwordEncoder.matches(request.password(), user.getPassword());

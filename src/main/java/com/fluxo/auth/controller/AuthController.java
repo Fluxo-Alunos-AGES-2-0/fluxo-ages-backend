@@ -9,6 +9,7 @@ import com.fluxo.auth.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,6 +22,7 @@ import java.util.Collections;
 
 @RestController
 @RequestMapping("/auth")
+@Tag(name = "1. Autenticação", description = "Endpoints para gerenciamento de login e recuperação de senha")
 public class AuthController {
 
     private final AuthService authService;
@@ -30,6 +32,11 @@ public class AuthController {
     }
 
     @PostMapping("/login")
+    @Operation(summary = "Realizar login", description = "Autentica o usuário e retorna o token de acesso (JWT)")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Login realizado com sucesso"),
+        @ApiResponse(responseCode = "401", description = "Credenciais inválidas")
+    })
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
     }
