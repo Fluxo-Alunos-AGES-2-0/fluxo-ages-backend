@@ -7,13 +7,13 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "tb_user") 
+@Table(name = "\"user\"")
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_id")
-    private Long id;
+    @Column(name = "id_user")
+    private Integer id;
 
     @Column(nullable = false, length = 255)
     private String name;
@@ -27,7 +27,6 @@ public class User {
     @Column(nullable = false, length = 255)
     private String password;
 
-    @Column(nullable = false, length = 20)
+    @Column(name = "type", nullable = false, length = 20)
     private String role;
-
 }

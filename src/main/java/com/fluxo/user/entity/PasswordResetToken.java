@@ -22,7 +22,7 @@ public class PasswordResetToken {
     private UUID id;
 
     @ManyToOne(targetEntity = User.class, fetch = FetchType.EAGER)
-    @JoinColumn(nullable = false, name = "user_id")
+    @JoinColumn(nullable = false, name = "id_user", referencedColumnName = "id_user")
     private User user;
 
     @Column(nullable = false, unique = true)

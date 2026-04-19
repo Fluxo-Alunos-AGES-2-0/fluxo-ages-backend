@@ -1,5 +1,6 @@
 package com.fluxo.report.entity;
 
+import com.fluxo.project.entity.Project;
 import com.fluxo.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -13,18 +14,23 @@ public class Report {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "report_id")
+    @Column(name = "id_report")
     private Integer id;
 
+    @Column(nullable = false)
     private Integer type;
 
-    @Column(name = "creation_date")
-    private LocalDate creationDate;
+    @Column(name = "create_date", nullable = false)
+    private LocalDate createDate;
 
-    @Column(name = "edition_date")
-    private LocalDate editionDate;
+    @Column(name = "edit_date", nullable = false)
+    private LocalDate editDate;
 
-    @ManyToOne
-    @JoinColumn(name = "student_user_id", referencedColumnName = "user_id")
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "id_user_student", referencedColumnName = "id_user", nullable = false)
     private User studentUser;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "id_project", referencedColumnName = "id_project", nullable = false)
+    private Project project;
 }

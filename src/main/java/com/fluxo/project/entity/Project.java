@@ -1,6 +1,5 @@
 package com.fluxo.project.entity;
 
-import com.fluxo.team.entity.Team;
 import com.fluxo.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -12,27 +11,28 @@ public class Project {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "project_id")
+    @Column(name = "id_project")
     private Integer id;
 
+    @Column(nullable = false)
     private String name;
+
+    @Column(nullable = false)
     private String description;
 
-    @Column(length = 10)
+    @Column(nullable = false, length = 10, columnDefinition = "char(10)")
     private String status;
 
-    @Column(length = 10)
+    @Column(nullable = false, length = 10, columnDefinition = "char(10)")
     private String period;
 
-    private String notes;
-    private String technologies;
-    private String practices;
+    @Column(name = "observation")
+    private String observation;
 
-    @ManyToOne
-    @JoinColumn(name = "team_id")
-    private Team team;
+    @Column(name = "git_lab_link")
+    private String gitLabLink;
 
-    @ManyToOne
-    @JoinColumn(name = "professor_user_id", referencedColumnName = "user_id")
-    private User professorUser;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "id_user_teacher", referencedColumnName = "id_user", nullable = false)
+    private User teacherUser;
 }

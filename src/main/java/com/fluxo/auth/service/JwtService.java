@@ -22,7 +22,7 @@ public class JwtService {
     @Value("${jwt.expiration}")
     private long expirationTimeInSeconds;
 
-    public String generateToken(Long userId, String name, String role) {
+    public String generateToken(Integer userId, String name, String role) {
         long expirationInMillis = expirationTimeInSeconds * 1000;
 
         return Jwts.builder()
@@ -35,8 +35,8 @@ public class JwtService {
                 .compact();
     }
 
-    public Long extractUserId(String token) {
-        return Long.valueOf(extractAllClaims(token).getSubject());
+    public Integer extractUserId(String token) {
+        return Integer.valueOf(extractAllClaims(token).getSubject());
     }
 
     public String extractRole(String token) {
@@ -45,7 +45,7 @@ public class JwtService {
 
     public boolean isTokenValid(String token, User user) {
         Claims claims = extractAllClaims(token);
-        Long userId = Long.valueOf(claims.getSubject());
+        Integer userId = Integer.valueOf(claims.getSubject());
         String role = claims.get("role", String.class);
 
         return user.getId().equals(userId)

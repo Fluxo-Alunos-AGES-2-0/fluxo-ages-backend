@@ -2,19 +2,20 @@ package com.fluxo.report.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDate;
+import java.time.OffsetDateTime;
 
 @Entity
 @Table(name = "report_review")
-@PrimaryKeyJoinColumn(name = "report_id") // Faz o link com o ID da classe Report
+@PrimaryKeyJoinColumn(name = "id_report")
 @Getter @Setter @NoArgsConstructor
 public class ReportReview extends Report {
 
+    @Column(nullable = false)
     private String comment;
 
-    @Column(name = "reference_url")
-    private String referenceUrl;
+    @Column(name = "correction_url", nullable = false)
+    private String correctionUrl;
 
-    @Column(name = "review_date")
-    private LocalDate reviewDate;
+    @Column(name = "revision_date", nullable = false, columnDefinition = "timestamp with time zone")
+    private OffsetDateTime revisionDate;
 }
