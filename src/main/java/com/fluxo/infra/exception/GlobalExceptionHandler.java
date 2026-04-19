@@ -1,8 +1,8 @@
 package com.fluxo.infra.exception;
 
-import com.fluxo.attendance.exception.ActiveAttendanceNotFoundException;
-import com.fluxo.attendance.exception.AttendanceAlreadyOpenException;
 import com.fluxo.auth.exception.InvalidCredentialsException;
+import com.fluxo.hours.exception.ActiveHoursNotFoundException;
+import com.fluxo.hours.exception.HoursAlreadyOpenException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -20,14 +20,14 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", ex.getMessage()));
     }
 
-    @ExceptionHandler(AttendanceAlreadyOpenException.class)
-    public ResponseEntity<Map<String, String>> handleAttendanceAlreadyOpen(AttendanceAlreadyOpenException ex) {
+    @ExceptionHandler(HoursAlreadyOpenException.class)
+    public ResponseEntity<Map<String, String>> handleHoursAlreadyOpen(HoursAlreadyOpenException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(Map.of("error", ex.getMessage()));
     }
 
-    @ExceptionHandler(ActiveAttendanceNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleActiveAttendanceNotFound(ActiveAttendanceNotFoundException ex) {
+    @ExceptionHandler(ActiveHoursNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleActiveHoursNotFound(ActiveHoursNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("error", ex.getMessage()));
     }
