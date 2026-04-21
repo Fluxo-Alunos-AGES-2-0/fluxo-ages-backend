@@ -1,6 +1,7 @@
 package com.fluxo.hours.service;
 
 import com.fluxo.hours.dto.ActiveHoursResponseDto;
+import com.fluxo.hours.dto.HoursDTO;
 import com.fluxo.hours.dto.StartHoursResponseDto;
 import com.fluxo.hours.dto.StopHoursRequestDto;
 import com.fluxo.hours.dto.StopHoursResponseDto;
@@ -32,6 +33,7 @@ public class HoursService {
 
     private static final int HOURS_REPORT_TYPE = 1;
     private static final int DEFAULT_ACTIVITY_TYPE = 1;
+    private static final long TOTAL_SECONDS = 216000L;
 
     private final HoursReportRepository hoursReportRepository;
 
@@ -127,13 +129,28 @@ public class HoursService {
                 .toList();
     }
 
-    public int getTotalSeconds(Integer userId) {
+    public HoursDTO getHourControl() {
+        User authenticatedUser = getAuthenticatedUser();
+
+        long totalCompletedSeconds = getTotalSeconds(authenticatedUser.getId());
+        long remainingSeconds = Math.max(0, TOTAL_SECONDS - totalCompletedSeconds);
+        double percentual = (totalCompletedSeconds * 100.0) / TOTAL_SECONDS;
+
+        return HoursDTO.builder()
+                .completedSeconds(totalCompletedSeconds)
+                .remainingSeconds(remainingSeconds)
+                .totalSeconds(TOTAL_SECONDS)
+                .percentual(percentual)
+                .build();
+    }
+
+    public long getTotalSeconds(Integer userId) {
         return hoursReportRepository
                 .findByStudentUserId(userId)
                 .stream()
                 .map(HoursReport::getTotalTimeSeconds)
                 .filter(total -> total != null)
-                .mapToInt(Integer::intValue)
+                .mapToLong(Integer::longValue)
                 .sum();
     }
 

@@ -1,4 +1,4 @@
-package com.fluxo.dashboard.dto;
+package com.fluxo.hours.dto;
 
 import lombok.Builder;
 import lombok.Data;

@@ -1,6 +1,7 @@
 package com.fluxo.hours.controller;
 
 import com.fluxo.hours.dto.ActiveHoursResponseDto;
+import com.fluxo.hours.dto.HoursDTO;
 import com.fluxo.hours.dto.StartHoursResponseDto;
 import com.fluxo.hours.dto.StopHoursRequestDto;
 import com.fluxo.hours.dto.StopHoursResponseDto;
@@ -67,5 +68,14 @@ public class HoursController {
     })
     public ResponseEntity<List<StopHoursResponseDto>> getMyHours() {
         return ResponseEntity.ok(hoursService.getMyHours());
+    }
+
+    @GetMapping("/me/control")
+    @Operation(summary = "Obter informações de controle de horas", description = "Retorna informações necessárias para o controle de Horas (Concluídas, A cumprir, Total e Percentual).")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Total de horas retornado com sucesso")
+    })
+    public ResponseEntity<HoursDTO> getHourControl() {
+        return ResponseEntity.ok(hoursService.getHourControl());
     }
 }
