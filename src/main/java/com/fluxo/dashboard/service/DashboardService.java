@@ -3,11 +3,10 @@ package com.fluxo.dashboard.service;
 import com.fluxo.dashboard.dto.AttendanceDTO;
 import com.fluxo.dashboard.dto.AuxDTO;
 import com.fluxo.dashboard.dto.DashboardResponseDTO;
-import com.fluxo.dashboard.dto.HoursDTO;
 import com.fluxo.dashboard.dto.ProfileDTO;
 import com.fluxo.dashboard.dto.ProjectDTO;
-import com.fluxo.hours.entity.HoursReport;
-import com.fluxo.hours.repository.HoursReportRepository;
+import com.fluxo.hours.dto.HoursDTO;
+import com.fluxo.hours.service.HoursService;
 import com.fluxo.user.dto.StudentProfileResponseDto;
 import com.fluxo.user.service.StudentService;
 import lombok.RequiredArgsConstructor;
@@ -22,27 +21,13 @@ public class DashboardService {
     private static final long TOTAL_SECONDS = 216000L;
 
     private final StudentService studentService;
-    private final HoursReportRepository hoursReportRepository;
+    private final HoursService hoursService;
 
     public DashboardResponseDTO getDashboard(Integer userId) {
         StudentProfileResponseDto studentProfile = studentService.getLoggedStudentProfile()
                 .orElseThrow(() -> new IllegalStateException("Perfil do aluno nao encontrado"));
 
-        List<HoursReport> hoursReports = hoursReportRepository.findByStudentUserId(userId);
-
-        long completed = hoursReports.stream()
-                .mapToLong(report -> report.getTotalTimeSeconds() != null ? report.getTotalTimeSeconds() : 0L)
-                .sum();
-
-        long remaining = Math.max(0L, TOTAL_SECONDS - completed);
-        double percentual = (completed * 100.0) / TOTAL_SECONDS;
-
-        HoursDTO hours = HoursDTO.builder()
-                .completedSeconds(completed)
-                .remainingSeconds(remaining)
-                .totalSeconds(TOTAL_SECONDS)
-                .percentual(percentual)
-                .build();
+        HoursDTO hours = hoursService.getHourControl();
 
         AttendanceDTO attendanceDTO = AttendanceDTO.builder()
                 .totalClasses(studentProfile.attendance().totalClasses())
