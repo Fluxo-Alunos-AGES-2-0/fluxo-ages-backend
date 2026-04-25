@@ -1,7 +1,8 @@
 package com.fluxo.hours.repository;
 
-import com.fluxo.hours.entity.HoursReport;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.fluxo.report.entity.HoursReport;
 
 import java.util.List;
 import java.util.Optional;

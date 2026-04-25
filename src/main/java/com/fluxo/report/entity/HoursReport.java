@@ -1,6 +1,5 @@
-package com.fluxo.hours.entity;
+package com.fluxo.report.entity;
 
-import com.fluxo.report.entity.Report;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
