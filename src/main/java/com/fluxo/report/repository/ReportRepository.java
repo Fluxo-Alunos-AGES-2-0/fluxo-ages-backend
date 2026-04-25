@@ -24,4 +24,6 @@ public interface ReportRepository extends JpaRepository {
                 WHERE u.id = :userId
             """)
     List<ProgressReportResponseDto> findProgressReportsByUserId(Integer userId);
+
+    List<FinalReportResponseDto> findFinalReportsByUserId(Integer userId);
 }

@@ -20,4 +20,9 @@ public class ReportController {
     public ResponseEntity<List<ProgressReportResponseDto>> getMyProgressReports() {
         return ResponseEntity.ok(reportService.getProgressReport());
     }
+
+    @GetMapping("/me/final")
+    public ResponseEntity<List<FinalReportResponseDto>> getMyFinalReports(){
+        return ResponseEntity.ok(reportService.getFinalReports());
+    }
 }

@@ -19,4 +19,10 @@ public class ReportService {
 
         return reportRepository.findProgressReportsByUserId(authenticatedUser.getId());
     }
+
+    public List<FinalReportResponseDto> getFinalReports(){
+        User authenticatedUser = authenticatedUserService.getAuthenticatedUser();
+
+        return reportRepository.findFinalReportsByUserId(authenticatedUser.getId());
+    }
 }
