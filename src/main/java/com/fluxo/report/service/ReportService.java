@@ -17,6 +17,6 @@ public class ReportService {
     public List<ProgressReportResponseDto> getProgressReport() {
         User authenticatedUser = authenticatedUserService.getAuthenticatedUser();
 
-        return reportRepository.findProgressReportsByUserId(authenticatedUser.getId());
+        return reportRepository.findByStudentUserId(authenticatedUser.getId());
     }
 }

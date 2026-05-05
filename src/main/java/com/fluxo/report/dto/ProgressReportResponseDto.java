@@ -1,11 +1,12 @@
 package com.fluxo.report.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record ProgressReportResponseDto(
-        LocalDate date,
+        LocalDate createDate,
         String project,
-        double grade,
-        String feedback
+        BigDecimal grade,
+        String comment
 ) {
 }
