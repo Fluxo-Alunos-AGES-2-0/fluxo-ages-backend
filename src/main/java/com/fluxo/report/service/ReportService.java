@@ -1,6 +1,8 @@
 package com.fluxo.report.service;
 
 import com.fluxo.report.dto.ProgressReportResponseDto;
+import com.fluxo.report.entity.Report;
+import com.fluxo.report.entity.ReportReview;
 import com.fluxo.report.repository.ReportRepository;
 import com.fluxo.user.entity.User;
 import com.fluxo.user.service.AuthenticatedUserService;
@@ -17,6 +19,21 @@ public class ReportService {
     public List<ProgressReportResponseDto> getProgressReport() {
         User authenticatedUser = authenticatedUserService.getAuthenticatedUser();
 
-        return reportRepository.findByStudentUserId(authenticatedUser.getId());
+        List<Report> relatorios = reportRepository.findByStudentUserId(authenticatedUser.getId());
+        
+       //O que faz essa gambiara: como o report tem duas classes filhas, uma delas tem o campo comment e a outra não, então para evitar um cast desnecessário, eu verifico se o report é uma instancia de ReportReview, se for, eu pego o comment, se não for, eu deixo o comment vazio. 
+        return relatorios.stream().map(report -> {
+            String comment = "";
+            if (report instanceof ReportReview review) {
+                comment = review.getComment();
+            }
+
+            return new ProgressReportResponseDto(
+                    report.getCreateDate(),
+                    report.getProject().getName(),
+                    report.getGrade(),
+                    comment
+            );
+        }).toList();
     }
 }
