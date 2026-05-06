@@ -10,6 +10,7 @@ import com.fluxo.hours.exception.ActiveHoursNotFoundException;
 import com.fluxo.hours.exception.HoursAlreadyOpenException;
 import com.fluxo.hours.repository.HoursReportRepository;
 import com.fluxo.project.entity.Project;
+import com.fluxo.report.enums.ReportType;
 import com.fluxo.user.entity.StudentProfile;
 import com.fluxo.user.entity.User;
 import com.fluxo.user.service.AuthenticatedUserService;
@@ -32,7 +33,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class HoursService {
 
-    private static final int HOURS_REPORT_TYPE = 1;
+    private static final ReportType HOURS_REPORT_TYPE = ReportType.HOURS;
     private static final int DEFAULT_ACTIVITY_TYPE = 1;
     private static final long TOTAL_SECONDS = 216000L;
 
