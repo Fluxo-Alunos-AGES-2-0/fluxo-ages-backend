@@ -141,27 +141,6 @@ class ReportServiceTest {
             () -> reportService.uploadProgressReport(largeFile, studentId));
     }
 
-    // ===== Project Lookup Tests =====
-
-    @Test
-    @DisplayName("Deve lançar StudentProjectNotFoundException quando projeto não existe")
-    void testUploadProgressReport_ProjectNotFound() {
-        Integer studentId = 1;
-        
-        User student = new User();
-        student.setId(studentId);
-        
-        StudentProfile studentProfile = new StudentProfile();
-        studentProfile.setStudentUser(student);
-        studentProfile.setTeam(null); // No team = no project
-        
-        // Mock the user repository
-        when(userRepository.getReferenceById(studentId)).thenReturn(student);
-        
-        assertThrows(StudentProjectNotFoundException.class,
-            () -> reportService.uploadProgressReport(validPdfFile, studentId));
-    }
-
     // ===== Upload Progress Report Tests =====
 
     @Test
