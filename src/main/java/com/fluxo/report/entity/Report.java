@@ -1,6 +1,7 @@
 package com.fluxo.report.entity;
 
 import com.fluxo.project.entity.Project;
+import com.fluxo.report.enums.ReportType;
 import com.fluxo.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -19,8 +20,9 @@ public class Report {
     @Column(name = "id_report")
     private Integer id;
 
-    @Column(nullable = false)
-    private Integer type;
+    @Column(nullable = false, length = 10)
+    @Enumerated(EnumType.STRING)
+    private ReportType type;
 
     @Column(name = "create_date", nullable = false)
     private LocalDate createDate;
