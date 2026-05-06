@@ -9,5 +9,7 @@ public enum ReportType {
     @Schema(description = "Relatório Final")
     RF,
     @Schema(description = "Relatório de Sprint")
-    SPRINT
+    SPRINT,
+    @Schema(description = "Registro de Horas")
+    HOURS
 }
