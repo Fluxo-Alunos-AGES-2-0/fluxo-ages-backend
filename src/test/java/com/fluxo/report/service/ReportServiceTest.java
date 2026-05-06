@@ -7,6 +7,7 @@ import com.fluxo.report.exception.InvalidReportFileException;
 import com.fluxo.report.exception.ReportStorageException;
 import com.fluxo.report.exception.StudentProjectNotFoundException;
 import com.fluxo.report.repository.ReportArchiveRepository;
+import com.fluxo.user.entity.StudentProfile;
 import com.fluxo.user.entity.User;
 import com.fluxo.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @DisplayName("ReportService Tests")
@@ -145,9 +147,17 @@ class ReportServiceTest {
     @DisplayName("Deve lançar StudentProjectNotFoundException quando projeto não existe")
     void testUploadProgressReport_ProjectNotFound() {
         Integer studentId = 1;
-        // Mock: nenhum student profile encontrado
-        // Isso depende de como findCurrentProject consulta, mas lançaria a exceção
-
+        
+        User student = new User();
+        student.setId(studentId);
+        
+        StudentProfile studentProfile = new StudentProfile();
+        studentProfile.setStudentUser(student);
+        studentProfile.setTeam(null); // No team = no project
+        
+        // Mock the user repository
+        when(userRepository.getReferenceById(studentId)).thenReturn(student);
+        
         assertThrows(StudentProjectNotFoundException.class,
             () -> reportService.uploadProgressReport(validPdfFile, studentId));
     }
