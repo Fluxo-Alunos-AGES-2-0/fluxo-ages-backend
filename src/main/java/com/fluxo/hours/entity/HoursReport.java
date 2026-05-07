@@ -16,7 +16,7 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor
 public class HoursReport extends Report {
 
-    @Column
+    @Column(length = 1250)
     private String activities;
 
     @Column(name = "activity_type")
