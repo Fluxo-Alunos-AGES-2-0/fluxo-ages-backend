@@ -7,6 +7,7 @@ import com.fluxo.user.entity.StudentProfile;
 import com.fluxo.user.entity.User;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -15,13 +16,15 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class StudentService {
 
     @PersistenceContext
     private EntityManager entityManager;
+    private final AuthenticatedUserService authenticatedUserService;
 
     public Optional<StudentProfileResponseDto> getLoggedStudentProfile() {
-        User authenticatedUser = getAuthenticatedUser();
+        User authenticatedUser = authenticatedUserService.getAuthenticatedUser();
 
         StudentProfile studentProfile = findStudentProfileByUserId(authenticatedUser.getId());
         if (studentProfile == null || studentProfile.getTeam() == null || studentProfile.getTeam().getProject() == null) {
@@ -55,16 +58,6 @@ public class StudentService {
                         absences
                 )
         ));
-    }
-
-    private User getAuthenticatedUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !(authentication.getPrincipal() instanceof User user)) {
-            throw new IllegalStateException("Usuario autenticado nao encontrado.");
-        }
-
-        return user;
     }
 
     private StudentProfile findStudentProfileByUserId(Integer userId) {
