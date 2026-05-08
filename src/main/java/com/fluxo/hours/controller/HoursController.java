@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/hours")
 @RequiredArgsConstructor
@@ -43,7 +45,7 @@ public class HoursController {
         @ApiResponse(responseCode = "400", description = "Nenhum registro ativo para ser parado ou dados inválidos")
     })
     public ResponseEntity<StopHoursResponseDto> stopHours(
-            @RequestBody StopHoursRequestDto request
+            @Valid @RequestBody StopHoursRequestDto request
     ) {
         StopHoursResponseDto response = hoursService.stopHours(request);
         return ResponseEntity.ok(response);
