@@ -2,6 +2,7 @@ package com.fluxo.report.service;
 
 import com.fluxo.report.dto.FinalReportResponseDto;
 import com.fluxo.report.dto.ProgressReportResponseDto;
+import com.fluxo.report.entity.Report;
 import com.fluxo.report.entity.ReportReview;
 import com.fluxo.report.enums.ReportType;
 import com.fluxo.report.repository.ReportRepository;
