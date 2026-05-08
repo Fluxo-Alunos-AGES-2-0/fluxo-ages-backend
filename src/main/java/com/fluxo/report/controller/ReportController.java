@@ -15,9 +15,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/report")
 @RequiredArgsConstructor
+
+@Tag(name = "7. Relatórios", description = "Endpoints para obter relatórios de andamento e final")
 public class ReportController {
     private final ReportService reportService;
 
+    
     @GetMapping("/me/progress")
     public ResponseEntity<List<ProgressReportResponseDto>> getMyProgressReports() {
         return ResponseEntity.ok(reportService.getProgressReports());
