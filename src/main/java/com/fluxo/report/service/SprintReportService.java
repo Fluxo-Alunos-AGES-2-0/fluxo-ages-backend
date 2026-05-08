@@ -4,14 +4,14 @@ import com.fluxo.project.entity.Project;
 import com.fluxo.report.dto.SprintReportRequestDto;
 import com.fluxo.report.dto.SprintReportResponseDto;
 import com.fluxo.report.entity.SprintReport;
+import com.fluxo.report.enums.ReportType;
 import com.fluxo.report.repository.SprintReportRepository;
 import com.fluxo.user.entity.StudentProfile;
 import com.fluxo.user.entity.User;
+import com.fluxo.user.service.AuthenticatedUserService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -22,15 +22,13 @@ import java.util.List;
 public class SprintReportService {
 
     private final SprintReportRepository sprintReportRepository;
+    private final AuthenticatedUserService authenticatedUserService;
 
     @PersistenceContext
     private EntityManager entityManager;
 
-    // TODO: Confirm if this is the correct type value for sprint reports.
-    private static final Integer SPRINT_REPORT_TYPE = 1;
-
     public SprintReportResponseDto createSprintReport(SprintReportRequestDto request) {
-        User authenticatedUser = getAuthenticatedUser();
+        User authenticatedUser = authenticatedUserService.getAuthenticatedUser();
 
         StudentProfile studentProfile = findStudentProfileByUserId(authenticatedUser.getId());
         if (studentProfile == null) {
@@ -44,7 +42,7 @@ public class SprintReportService {
         Project project = studentProfile.getTeam().getProject();
 
         SprintReport sprintReport = new SprintReport();
-        sprintReport.setType(SPRINT_REPORT_TYPE);
+        sprintReport.setType(ReportType.SPRINT);
         sprintReport.setCreateDate(LocalDate.now());
         sprintReport.setEditDate(LocalDate.now());
         sprintReport.setStudentUser(authenticatedUser);
@@ -60,16 +58,6 @@ public class SprintReportService {
         SprintReport savedSprintReport = sprintReportRepository.save(sprintReport);
 
         return toResponseDto(savedSprintReport);
-    }
-
-    private User getAuthenticatedUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !(authentication.getPrincipal() instanceof User user)) {
-            throw new IllegalStateException("Usuário autenticado não encontrado.");
-        }
-
-        return user;
     }
 
     private StudentProfile findStudentProfileByUserId(Integer userId) {
