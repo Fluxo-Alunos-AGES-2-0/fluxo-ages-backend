@@ -8,9 +8,8 @@ import com.fluxo.report.enums.ReportType;
 import com.fluxo.report.repository.SprintReportRepository;
 import com.fluxo.user.entity.StudentProfile;
 import com.fluxo.user.entity.User;
+import com.fluxo.user.repository.StudentProfileRepository;
 import com.fluxo.user.service.AuthenticatedUserService;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,9 +22,7 @@ public class SprintReportService {
 
     private final SprintReportRepository sprintReportRepository;
     private final AuthenticatedUserService authenticatedUserService;
-
-    @PersistenceContext
-    private EntityManager entityManager;
+    private final StudentProfileRepository studentProfileRepository;
 
     public SprintReportResponseDto createSprintReport(SprintReportRequestDto request) {
         User authenticatedUser = authenticatedUserService.getAuthenticatedUser();
@@ -61,16 +58,7 @@ public class SprintReportService {
     }
 
     private StudentProfile findStudentProfileByUserId(Integer userId) {
-        List<StudentProfile> result = entityManager.createQuery("""
-                SELECT sp
-                FROM StudentProfile sp
-                WHERE sp.studentUser.id = :userId
-                """, StudentProfile.class)
-                .setParameter("userId", userId)
-                .setMaxResults(1)
-                .getResultList();
-
-        return result.isEmpty() ? null : result.get(0);
+        return studentProfileRepository.findByStudentUserId(userId).orElse(null);
     }
 
     private SprintReportResponseDto toResponseDto(SprintReport sprintReport) {

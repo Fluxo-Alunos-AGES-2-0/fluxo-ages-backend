@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/report")
 @RequiredArgsConstructor
-@Tag(name = "Relatorios", description = "Endpoints para gerenciamento de relatorios")
+@Tag(name = "8. Relatórios", description = "Endpoints para gerenciamento de relatorios")
 public class SprintReportController {
 
     private final SprintReportService sprintReportService;

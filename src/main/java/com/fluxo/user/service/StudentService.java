@@ -5,23 +5,23 @@ import com.fluxo.user.dto.StudentProfileResponseDto;
 import com.fluxo.user.entity.AttendanceRecordStatus;
 import com.fluxo.user.entity.StudentProfile;
 import com.fluxo.user.entity.User;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import com.fluxo.user.repository.AttendanceRecordRepository;
+import com.fluxo.user.repository.StudentProfileRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class StudentService {
 
-    @PersistenceContext
-    private EntityManager entityManager;
+    private final AuthenticatedUserService authenticatedUserService;
+    private final StudentProfileRepository studentProfileRepository;
+    private final AttendanceRecordRepository attendanceRecordRepository;
 
     public Optional<StudentProfileResponseDto> getLoggedStudentProfile() {
-        User authenticatedUser = getAuthenticatedUser();
+        User authenticatedUser = authenticatedUserService.getAuthenticatedUser();
 
         StudentProfile studentProfile = findStudentProfileByUserId(authenticatedUser.getId());
         if (studentProfile == null || studentProfile.getTeam() == null || studentProfile.getTeam().getProject() == null) {
@@ -57,27 +57,8 @@ public class StudentService {
         ));
     }
 
-    private User getAuthenticatedUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !(authentication.getPrincipal() instanceof User user)) {
-            throw new IllegalStateException("Usuario autenticado nao encontrado.");
-        }
-
-        return user;
-    }
-
     private StudentProfile findStudentProfileByUserId(Integer userId) {
-        List<StudentProfile> result = entityManager.createQuery("""
-            SELECT sp
-            FROM StudentProfile sp
-            WHERE sp.studentUser.id = :userId
-            """, StudentProfile.class)
-                .setParameter("userId", userId)
-                .setMaxResults(1)
-                .getResultList();
-
-        return result.isEmpty() ? null : result.get(0);
+        return studentProfileRepository.findByStudentUserId(userId).orElse(null);
     }
 
     private StudentProfileResponseDto.ProfessorDto buildProfessorDto(Project project) {
@@ -92,28 +73,10 @@ public class StudentService {
     }
 
     private int countAttendanceByStatus(Integer userId, AttendanceRecordStatus status) {
-        Long count = entityManager.createQuery("""
-            SELECT COUNT(ar)
-            FROM AttendanceRecord ar
-            WHERE ar.studentUser.id = :userId
-              AND ar.status = :status
-            """, Long.class)
-                .setParameter("userId", userId)
-                .setParameter("status", status)
-                .getSingleResult();
-
-        return count.intValue();
+        return attendanceRecordRepository.countByStudentUserIdAndStatus(userId, status);
     }
 
     private int countAttendanceRecords(Integer userId) {
-        Long count = entityManager.createQuery("""
-            SELECT COUNT(ar)
-            FROM AttendanceRecord ar
-            WHERE ar.studentUser.id = :userId
-            """, Long.class)
-                .setParameter("userId", userId)
-                .getSingleResult();
-
-        return count.intValue();
+        return attendanceRecordRepository.countByStudentUserId(userId);
     }
 }
