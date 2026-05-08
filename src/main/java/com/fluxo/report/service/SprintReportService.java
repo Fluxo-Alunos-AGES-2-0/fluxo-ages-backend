@@ -14,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -37,15 +36,26 @@ public class SprintReportService {
         }
 
         Project project = studentProfile.getTeam().getProject();
+        String sprintValue = String.valueOf(request.sprint());
 
-        SprintReport sprintReport = new SprintReport();
-        sprintReport.setType(ReportType.SPRINT);
-        sprintReport.setCreateDate(LocalDate.now());
+        SprintReport sprintReport = sprintReportRepository
+                .findByStudentUserIdAndProjectIdAndSprintAndType(
+                        authenticatedUser.getId(),
+                        project.getId(),
+                        sprintValue,
+                        ReportType.SPRINT
+                )
+                .orElseGet(() -> {
+                    SprintReport newSprintReport = new SprintReport();
+                    newSprintReport.setType(ReportType.SPRINT);
+                    newSprintReport.setCreateDate(LocalDate.now());
+                    newSprintReport.setStudentUser(authenticatedUser);
+                    newSprintReport.setProject(project);
+                    newSprintReport.setSprint(sprintValue);
+                    return newSprintReport;
+                });
+
         sprintReport.setEditDate(LocalDate.now());
-        sprintReport.setStudentUser(authenticatedUser);
-        sprintReport.setProject(project);
-
-        sprintReport.setSprint(String.valueOf(request.sprint()));
         sprintReport.setPredictedActivity(request.predictedActivity());
         sprintReport.setActivityCompleted(request.activityCompleted());
         sprintReport.setProblemsEncountered(request.problemsEncountered());
