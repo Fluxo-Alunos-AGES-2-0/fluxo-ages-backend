@@ -1,5 +1,6 @@
 package com.fluxo.report.controller;
 
+import com.fluxo.report.dto.FinalReportResponseDto;
 import com.fluxo.report.dto.ProgressReportResponseDto;
 import com.fluxo.report.service.ReportService;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +19,7 @@ public class ReportController {
 
     @GetMapping("/me/progress")
     public ResponseEntity<List<ProgressReportResponseDto>> getMyProgressReports() {
-        return ResponseEntity.ok(reportService.getProgressReport());
+        return ResponseEntity.ok(reportService.getProgressReports());
     }
 
     @GetMapping("/me/final")
