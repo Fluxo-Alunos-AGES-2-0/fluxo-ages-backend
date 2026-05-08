@@ -13,7 +13,6 @@ import com.fluxo.project.entity.Project;
 import com.fluxo.report.enums.ReportType;
 import com.fluxo.user.entity.StudentProfile;
 import com.fluxo.user.entity.User;
-import com.fluxo.user.service.AuthenticatedUserService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
@@ -38,13 +37,12 @@ public class HoursService {
     private static final long TOTAL_SECONDS = 216000L;
 
     private final HoursReportRepository hoursReportRepository;
-    private final AuthenticatedUserService authenticatedUserService;
 
     @PersistenceContext
     private EntityManager entityManager;
 
     public StartHoursResponseDto startHours() {
-        User authenticatedUser = authenticatedUserService.getAuthenticatedUser();
+        User authenticatedUser = getAuthenticatedUser();
 
         boolean alreadyHasOpenHours =
                 hoursReportRepository.existsByStudentUserIdAndExitTimeIsNull(authenticatedUser.getId());
@@ -76,7 +74,7 @@ public class HoursService {
     }
 
     public StopHoursResponseDto stopHours(StopHoursRequestDto request) {
-        User authenticatedUser = authenticatedUserService.getAuthenticatedUser();
+        User authenticatedUser = getAuthenticatedUser();
 
         HoursReport hoursReport = hoursReportRepository
                 .findFirstByStudentUserIdAndExitTimeIsNullOrderByEntryTimeDesc(authenticatedUser.getId())
@@ -106,7 +104,7 @@ public class HoursService {
     }
 
     public Optional<ActiveHoursResponseDto> findActiveHours() {
-        User authenticatedUser = authenticatedUserService.getAuthenticatedUser();
+        User authenticatedUser = getAuthenticatedUser();
 
         return hoursReportRepository
                 .findFirstByStudentUserIdAndExitTimeIsNullOrderByEntryTimeDesc(authenticatedUser.getId())
@@ -117,7 +115,7 @@ public class HoursService {
     }
 
     public List<StopHoursResponseDto> getMyHours() {
-        User authenticatedUser =authenticatedUserService.getAuthenticatedUser();
+        User authenticatedUser = getAuthenticatedUser();
 
         return hoursReportRepository
                 .findByStudentUserIdAndExitTimeIsNotNullOrderByEntryTimeDesc(authenticatedUser.getId())
@@ -133,7 +131,7 @@ public class HoursService {
     }
 
     public HoursDTO getHourControl() {
-        User authenticatedUser = authenticatedUserService.getAuthenticatedUser();
+        User authenticatedUser = getAuthenticatedUser();
 
         long totalCompletedSeconds = getTotalSeconds(authenticatedUser.getId());
         long remainingSeconds = Math.max(0, TOTAL_SECONDS - totalCompletedSeconds);
@@ -155,6 +153,16 @@ public class HoursService {
                 .filter(total -> total != null)
                 .mapToLong(Integer::longValue)
                 .sum();
+    }
+
+    private User getAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !(authentication.getPrincipal() instanceof User user)) {
+            throw new IllegalStateException("Usuario autenticado nao encontrado.");
+        }
+
+        return user;
     }
 
     private Project findCurrentProject(Integer userId) {

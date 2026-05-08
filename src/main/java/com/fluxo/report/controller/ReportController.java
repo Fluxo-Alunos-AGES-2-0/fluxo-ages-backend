@@ -1,5 +1,6 @@
 package com.fluxo.report.controller;
 
+import com.fluxo.report.dto.FinalReportResponseDto;
 import com.fluxo.report.dto.ProgressReportResponseDto;
 import com.fluxo.report.service.ReportService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,12 +15,19 @@ import java.util.List;
 @RestController
 @RequestMapping("/report")
 @RequiredArgsConstructor
+
 @Tag(name = "7. Relatórios", description = "Endpoints para obter relatórios de andamento e final")
 public class ReportController {
     private final ReportService reportService;
 
+    
     @GetMapping("/me/progress")
     public ResponseEntity<List<ProgressReportResponseDto>> getMyProgressReports() {
-        return ResponseEntity.ok(reportService.getProgressReport());
+        return ResponseEntity.ok(reportService.getProgressReports());
+    }
+
+    @GetMapping("/me/final")
+    public ResponseEntity<List<FinalReportResponseDto>> getMyFinalReports(){
+        return ResponseEntity.ok(reportService.getFinalReports());
     }
 }

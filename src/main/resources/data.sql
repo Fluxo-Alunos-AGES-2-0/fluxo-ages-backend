@@ -54,3 +54,58 @@ WHERE student_user.email = 'aluno@fluxo.com'
       FROM student_profile sp
       WHERE sp.id_user_student = student_user.id_user
   );
+-- report RA com projeto ANDAMENTO
+INSERT INTO project (id_user_teacher, name, description, status, period, observation, git_lab_link)
+SELECT
+    u.id_user,
+    'ANDAMENTO',
+    'Projeto seed para relatório de andamento',
+    'ATIVO',
+    '2026.1',
+    NULL,
+    'https://gitlab.com/fluxo/andamento'
+FROM "user" u
+WHERE u.email = 'professor@fluxo.com'
+  AND NOT EXISTS (SELECT 1 FROM project p WHERE p.name = 'ANDAMENTO');
+
+INSERT INTO report (type, create_date, edit_date, grade, id_user_student, id_project)
+SELECT 'RA', '2026-03-10', '2026-03-10', 8.5, u.id_user, p.id_project
+FROM "user" u
+JOIN project p ON p.name = 'ANDAMENTO'
+WHERE u.email = 'aluno@fluxo.com'
+  AND NOT EXISTS (SELECT 1 FROM report r WHERE r.id_project = p.id_project AND r.type = 'RA');
+
+INSERT INTO report_review (id_report, comment, correction_url, revision_date)
+SELECT r.id_report, 'Bom progresso', 'https://drive.com/andamento', '2026-03-12 10:00:00+00'
+FROM report r
+JOIN project p ON p.id_project = r.id_project
+WHERE p.name = 'ANDAMENTO' AND r.type = 'RA'
+  AND NOT EXISTS (SELECT 1 FROM report_review rr WHERE rr.id_report = r.id_report);
+
+-- report RF com projeto FINAL
+INSERT INTO project (id_user_teacher, name, description, status, period, observation, git_lab_link)
+SELECT
+    u.id_user,
+    'FINAL',
+    'Projeto seed para relatório final',
+    'ATIVO',
+    '2026.1',
+    NULL,
+    'https://gitlab.com/fluxo/final'
+FROM "user" u
+WHERE u.email = 'professor@fluxo.com'
+  AND NOT EXISTS (SELECT 1 FROM project p WHERE p.name = 'FINAL');
+
+INSERT INTO report (type, create_date, edit_date, grade, id_user_student, id_project)
+SELECT 'RF', '2026-06-10', '2026-06-10', 9.0, u.id_user, p.id_project
+FROM "user" u
+JOIN project p ON p.name = 'FINAL'
+WHERE u.email = 'aluno@fluxo.com'
+  AND NOT EXISTS (SELECT 1 FROM report r WHERE r.id_project = p.id_project AND r.type = 'RF');
+
+INSERT INTO report_review (id_report, comment, correction_url, revision_date)
+SELECT r.id_report, 'Excelente trabalho', 'https://drive.com/final', '2026-06-12 10:00:00+00'
+FROM report r
+JOIN project p ON p.id_project = r.id_project
+WHERE p.name = 'FINAL' AND r.type = 'RF'
+  AND NOT EXISTS (SELECT 1 FROM report_review rr WHERE rr.id_report = r.id_report);
