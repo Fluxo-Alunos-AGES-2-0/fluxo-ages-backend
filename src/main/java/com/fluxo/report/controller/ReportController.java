@@ -22,16 +22,13 @@ import java.util.List;
 @RequestMapping("/report")
 @RequiredArgsConstructor
 
-@Tag(name = "7. Relatórios", description = "Endpoints para obter relatórios de andamento e final")
+@Tag(name = "7. Relatórios", description = "Endpoints para obter relatórios de sprint, andamento e final")
 public class ReportController {
     private final ReportService reportService;
     private final SprintReportService sprintReportService;
 
     @PostMapping("/sprint")
-    @Operation(
-            summary = "Criar relatorio de sprint",
-            description = "Cria um relatorio de sprint para o aluno autenticado"
-    )
+    @Operation(summary = "Criar relatorio de sprint", description = "Cria um relatorio de sprint para o aluno autenticado")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Relatorio de sprint criado com sucesso"),
             @ApiResponse(responseCode = "400", description = "Dados invalidos ou campos obrigatorios ausentes"),
@@ -39,19 +36,30 @@ public class ReportController {
             @ApiResponse(responseCode = "500", description = "Erro interno ao criar relatorio de sprint")
     })
     public ResponseEntity<SprintReportResponseDto> createSprintReport(
-            @Valid @RequestBody SprintReportRequestDto request
-    ) {
+            @Valid @RequestBody SprintReportRequestDto request) {
         SprintReportResponseDto response = sprintReportService.createSprintReport(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/me/progress")
+    @Operation(summary = "Obter relatorio de andamento", description = "Retorna o relatorio de andamento do aluno autenticado")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Relatorios de andamento obtidos com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Usuario nao autenticado"),
+            @ApiResponse(responseCode = "500", description = "Erro interno ao buscar relatorios de andamento")
+    })
     public ResponseEntity<List<ProgressReportResponseDto>> getMyProgressReports() {
         return ResponseEntity.ok(reportService.getProgressReports());
     }
 
     @GetMapping("/me/final")
-    public ResponseEntity<List<FinalReportResponseDto>> getMyFinalReports(){
+    @Operation(summary = "Obter relatorios finais", description = "Retorna os relatorios finais do aluno autenticado")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Relatorios finais obtidos com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Usuario nao autenticado"),
+            @ApiResponse(responseCode = "500", description = "Erro interno ao buscar relatorios finais")
+    })
+    public ResponseEntity<List<FinalReportResponseDto>> getMyFinalReports() {
         return ResponseEntity.ok(reportService.getFinalReports());
     }
 }
