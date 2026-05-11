@@ -42,7 +42,6 @@ public class ReportService {
     @jakarta.persistence.PersistenceContext
     private jakarta.persistence.EntityManager entityManager;
 
-  
     public List<ProgressReportResponseDto> getProgressReports() {
         User authenticatedUser = authenticatedUserService.getAuthenticatedUser();
 
@@ -58,7 +57,6 @@ public class ReportService {
                 .toList();
     }
 
-  
     public List<FinalReportResponseDto> getFinalReports() {
         User authenticatedUser = authenticatedUserService.getAuthenticatedUser();
 
@@ -73,8 +71,7 @@ public class ReportService {
                 ))
                 .toList();
     }
-
-
+    
     private void validateFile(MultipartFile file) {
         if (file.isEmpty()) {
             throw new InvalidReportFileException("Arquivo não pode estar vazio.");
@@ -88,7 +85,6 @@ public class ReportService {
             throw new InvalidReportFileException("O arquivo não pode exceder 25MB.");
         }
     }
-
 
     private Project findCurrentProject(Integer userId) {
         java.util.List<com.fluxo.user.entity.StudentProfile> result = entityManager.createQuery(
@@ -105,7 +101,6 @@ public class ReportService {
         return result.get(0).getTeam().getProject();
     }
 
-
     @FunctionalInterface
     private interface ExistingReportFinder {
         Optional<ReportArchive> find(Integer studentId, Project project);
@@ -115,7 +110,7 @@ public class ReportService {
     private ReportArchiveResponseDto uploadReport(
             MultipartFile file,
             Integer studentId,
-            int reportType,
+            ReportType reportType,
             ExistingReportFinder existingReportFinder) {
 
         validateFile(file);
@@ -151,7 +146,6 @@ public class ReportService {
         return buildResponse(savedReport);
     }
 
-  
     private ReportArchiveResponseDto buildResponse(ReportArchive report) {
         return new ReportArchiveResponseDto(
                 report.getId(),
@@ -163,17 +157,15 @@ public class ReportService {
         );
     }
 
-
     @Transactional
     public ReportArchiveResponseDto uploadProgressReport(MultipartFile file, Integer studentId) {
         return uploadReport(
                 file,
                 studentId,
-                1,
-                (id, project) -> reportArchiveRepository.findByStudentUserIdAndType(id, 1)
+                ReportType.RA,
+                (id, project) -> reportArchiveRepository.findByStudentUserIdAndType(id, ReportType.RA)
         );
     }
-
 
     @Transactional
     public ReportArchiveResponseDto uploadFinalReport(MultipartFile file, Integer studentId) {
@@ -181,8 +173,7 @@ public class ReportService {
         return uploadReport(
                 file,
                 studentId,
-                2,
-                (id, project) -> reportArchiveRepository.findByStudentUserIdAndProjectIdAndType(id, project.getId(), 2)
+                ReportType.RF,
+                (id, project) -> reportArchiveRepository.findByStudentUserIdAndProjectIdAndType(id, project.getId(), ReportType.RF)
         );
     }
-}
