@@ -177,3 +177,4 @@ public class ReportService {
                 (id, project) -> reportArchiveRepository.findByStudentUserIdAndProjectIdAndType(id, project.getId(), ReportType.RF)
         );
     }
+}
