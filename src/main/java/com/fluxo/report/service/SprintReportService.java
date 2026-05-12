@@ -1,6 +1,7 @@
 package com.fluxo.report.service;
 
 import com.fluxo.project.entity.Project;
+import com.fluxo.report.dto.SprintReportListResponseDto;
 import com.fluxo.report.dto.SprintReportRequestDto;
 import com.fluxo.report.dto.SprintReportResponseDto;
 import com.fluxo.report.entity.SprintReport;
@@ -14,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Comparator;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -67,6 +70,34 @@ public class SprintReportService {
         return toResponseDto(savedSprintReport);
     }
 
+    public List<SprintReportListResponseDto> getMySprintReports(Integer projectId) {
+        User authenticatedUser = authenticatedUserService.getAuthenticatedUser();
+
+        List<SprintReport> sprintReports;
+
+        if (projectId == null) {
+            sprintReports = sprintReportRepository.findByStudentUserIdAndType(
+                    authenticatedUser.getId(),
+                    ReportType.SPRINT
+            );
+        } else {
+            sprintReports = sprintReportRepository.findByStudentUserIdAndProjectIdAndType(
+                    authenticatedUser.getId(),
+                    projectId,
+                    ReportType.SPRINT
+            );
+        }
+
+        return sprintReports.stream()
+                .sorted(Comparator.comparingInt(this::getSprintNumber))
+                .map(this::toListResponseDto)
+                .toList();
+    }
+
+    private int getSprintNumber(SprintReport sprintReport) {
+        return Integer.parseInt(sprintReport.getSprint().trim());
+    }
+
     private StudentProfile findStudentProfileByUserId(Integer userId) {
         return studentProfileRepository.findByStudentUserId(userId).orElse(null);
     }
@@ -80,6 +111,15 @@ public class SprintReportService {
                 sprintReport.getProblemsEncountered(),
                 sprintReport.getLearnedLessons(),
                 sprintReport.getNextSteps()
+        );
+    }
+
+    private SprintReportListResponseDto toListResponseDto(SprintReport sprintReport) {
+        return new SprintReportListResponseDto(
+                "Sprint " + sprintReport.getSprint().trim(),
+                sprintReport.getStudentUser().getName(),
+                sprintReport.getCreateDate(),
+                sprintReport.getProject().getId()
         );
     }
 }
