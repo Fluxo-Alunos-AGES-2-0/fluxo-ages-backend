@@ -13,7 +13,7 @@ public class HoursReportDto {
     private String exit_time;
     private String total_hours;
     private String activities;
-    private String activity_type;
+    private String status;
 
     public HoursReportDto(HoursReport report) {
         DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -29,7 +29,7 @@ public class HoursReportDto {
 
         this.total_hours = formatSeconds(report.getTotalTimeSeconds());
         this.activities = report.getActivities();
-        this.activity_type = mapActivityType(report.getActivityType());
+        this.status = mapStatus(report);
     }
 
     private String formatSeconds(Integer seconds) {
@@ -41,15 +41,14 @@ public class HoursReportDto {
         return String.format("%02d:%02d", hours, minutes);
     }
 
-    private String mapActivityType(Integer type) {
-        if (type == null) return null;
-
-        return switch (type) {
-            case 1 -> "DEVELOPMENT";
-            case 2 -> "TESTING";
-            case 3 -> "DOCUMENTATION";
-            default -> "OTHER";
-        };
+    private String mapStatus(HoursReport report) {
+        if (report.getRejectionJustification() != null && !report.getRejectionJustification().isBlank()) {
+            return "REJECTED";
+        }
+        if (report.getExitTime() == null) {
+            return "PENDING";
+        }
+        return "APPROVED";
     }
 
     public Long getId_report() { return id_report; }
@@ -58,5 +57,5 @@ public class HoursReportDto {
     public String getExit_time() { return exit_time; }
     public String getTotal_hours() { return total_hours; }
     public String getActivities() { return activities; }
-    public String get_activity_type() { return activity_type; }
+    public String getStatus() { return status; }
 }

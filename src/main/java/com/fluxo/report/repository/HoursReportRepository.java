@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface HoursReportRepository extends JpaRepository<HoursReport, Integer> {
 
-    List<HoursReport> findByStudentUserId(Integer userId);
+    List<HoursReport> findByStudentUserIdAndProjectId(Integer userId, Integer projectId);
 
-    Optional<HoursReport> findByIdAndStudentUserId(Integer idReport, Integer userId);
+    Optional<HoursReport> findByIdAndStudentUserIdAndProjectId(Integer idReport, Integer userId, Integer projectId);
 }
