@@ -32,7 +32,6 @@ import java.util.Optional;
 public class HoursService {
 
     private static final ReportType HOURS_REPORT_TYPE = ReportType.HOURS;
-    private static final int DEFAULT_ACTIVITY_TYPE = 1;
     private static final long TOTAL_SECONDS = 216000L;
 
     private final HoursReportRepository hoursReportRepository;
