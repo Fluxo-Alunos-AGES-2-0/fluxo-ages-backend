@@ -11,37 +11,38 @@ import com.fluxo.hours.exception.HoursAlreadyOpenException;
 import com.fluxo.hours.repository.HoursReportRepository;
 import com.fluxo.project.entity.Project;
 import com.fluxo.hours.entity.HoursReport;
+import com.fluxo.report.enums.ReportType;
 import com.fluxo.user.entity.StudentProfile;
 import com.fluxo.user.entity.User;
+import com.fluxo.user.service.AuthenticatedUserService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-
 import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class HoursService {
 
-    private static final int HOURS_REPORT_TYPE = 1;
+    private static final ReportType HOURS_REPORT_TYPE = ReportType.HOURS;
+    private static final int DEFAULT_ACTIVITY_TYPE = 1;
     private static final long TOTAL_SECONDS = 216000L;
 
     private final HoursReportRepository hoursReportRepository;
+    private final AuthenticatedUserService authenticatedUserService;
 
     @PersistenceContext
     private EntityManager entityManager;
 
     public StartHoursResponseDto startHours() {
-        User authenticatedUser = getAuthenticatedUser();
+        User authenticatedUser = authenticatedUserService.getAuthenticatedUser();
 
         boolean alreadyHasOpenHours =
                 hoursReportRepository.existsByStudentUserIdAndExitTimeIsNull(authenticatedUser.getId());
@@ -73,7 +74,7 @@ public class HoursService {
     }
 
     public StopHoursResponseDto stopHours(StopHoursRequestDto request) {
-        User authenticatedUser = getAuthenticatedUser();
+        User authenticatedUser = authenticatedUserService.getAuthenticatedUser();
 
         HoursReport hoursReport = hoursReportRepository
                 .findFirstByStudentUserIdAndExitTimeIsNullOrderByEntryTimeDesc(authenticatedUser.getId())
@@ -104,7 +105,7 @@ public class HoursService {
     }
 
     public Optional<ActiveHoursResponseDto> findActiveHours() {
-        User authenticatedUser = getAuthenticatedUser();
+        User authenticatedUser = authenticatedUserService.getAuthenticatedUser();
 
         return hoursReportRepository
                 .findFirstByStudentUserIdAndExitTimeIsNullOrderByEntryTimeDesc(authenticatedUser.getId())
@@ -115,7 +116,7 @@ public class HoursService {
     }
 
     public HoursDTO getHourControl() {
-        User authenticatedUser = getAuthenticatedUser();
+        User authenticatedUser = authenticatedUserService.getAuthenticatedUser();
 
         long totalCompletedSeconds = getTotalSeconds(authenticatedUser.getId());
         long remainingSeconds = Math.max(0, TOTAL_SECONDS - totalCompletedSeconds);
@@ -135,19 +136,9 @@ public class HoursService {
                 .stream()
                 .filter(hoursReport -> hoursReport.getStatus() == HoursReportStatus.APPROVED)
                 .map(HoursReport::getTotalTimeSeconds)
-                .filter(total -> total != null)
+                .filter(Objects::nonNull)
                 .mapToLong(Integer::longValue)
                 .sum();
-    }
-
-    private User getAuthenticatedUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !(authentication.getPrincipal() instanceof User user)) {
-            throw new IllegalStateException("Usuario autenticado nao encontrado.");
-        }
-
-        return user;
     }
 
     private Project findCurrentProject(Integer userId) {
@@ -160,10 +151,10 @@ public class HoursService {
                 .setMaxResults(1)
                 .getResultList();
 
-        if (result.isEmpty() || result.get(0).getTeam() == null || result.get(0).getTeam().getProject() == null) {
+        if (result.isEmpty() || result.getFirst().getTeam() == null || result.getFirst().getTeam().getProject() == null) {
             throw new IllegalStateException("Projeto atual do aluno nao encontrado.");
         }
 
-        return result.get(0).getTeam().getProject();
+        return result.getFirst().getTeam().getProject();
     }
 }
