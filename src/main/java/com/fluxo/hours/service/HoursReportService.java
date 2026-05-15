@@ -9,8 +9,8 @@ import com.fluxo.user.service.StudentService;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Service
@@ -35,8 +35,7 @@ public class HoursReportService {
         return repository
                 .findByStudentUserIdAndProjectIdAndExitTimeIsNotNullOrderByEntryTimeDesc(
                         user.getId(),
-                        idProject != null ? idProject : projectId
-                )
+                        idProject != null ? idProject : projectId)
                 .stream()
                 .map(this::toHoursReportDto)
                 .toList();
@@ -54,21 +53,20 @@ public class HoursReportService {
     }
 
     private HoursReportDto toHoursReportDto(HoursReport report) {
-        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm");
-
         OffsetDateTime entry = report.getEntryTime();
         OffsetDateTime exit = report.getExitTime();
 
         return new HoursReportDto(
                 report.getId().longValue(),
-                entry != null ? entry.format(dateFormat) : null,
-                entry != null ? entry.format(timeFormat) : null,
-                exit != null ? exit.format(timeFormat) : null,
-                formatSeconds(report.getTotalTimeSeconds()),
+                entry != null
+                        ? entry.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+                        : null,
+                exit != null
+                        ? exit.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+                        : null,
+                report.getTotalTimeSeconds(),
                 report.getActivities(),
-                resolveHoursReportStatus(report).name()
-        );
+                resolveHoursReportStatus(report).name());
     }
 
     private HoursReportStatus resolveHoursReportStatus(HoursReport report) {
@@ -84,14 +82,4 @@ public class HoursReportService {
         return HoursReportStatus.APPROVED;
     }
 
-    private String formatSeconds(Integer seconds) {
-        if (seconds == null) {
-            return null;
-        }
-
-        long hours = seconds / 3600;
-        long minutes = (seconds % 3600) / 60;
-
-        return String.format("%02d:%02d", hours, minutes);
-    }
 }
