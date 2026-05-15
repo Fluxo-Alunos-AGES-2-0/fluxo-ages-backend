@@ -114,22 +114,6 @@ public class HoursService {
                 ));
     }
 
-    public List<StopHoursResponseDto> getMyHours() {
-        User authenticatedUser = getAuthenticatedUser();
-
-        return hoursReportRepository
-                .findByStudentUserIdAndExitTimeIsNotNullOrderByEntryTimeDesc(authenticatedUser.getId())
-                .stream()
-                .map(hoursReport -> new StopHoursResponseDto(
-                        hoursReport.getId(),
-                        hoursReport.getActivities(),
-                        hoursReport.getEntryTime().toInstant(),
-                        hoursReport.getExitTime().toInstant(),
-                        hoursReport.getTotalTimeSeconds()
-                ))
-                .toList();
-    }
-
     public HoursDTO getHourControl() {
         User authenticatedUser = getAuthenticatedUser();
 
@@ -149,6 +133,7 @@ public class HoursService {
         return hoursReportRepository
                 .findByStudentUserId(userId)
                 .stream()
+                .filter(hoursReport -> hoursReport.getStatus() == HoursReportStatus.APPROVED)
                 .map(HoursReport::getTotalTimeSeconds)
                 .filter(total -> total != null)
                 .mapToLong(Integer::longValue)
