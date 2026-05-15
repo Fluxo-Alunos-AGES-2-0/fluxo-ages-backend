@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDate;
 
 public record SprintReportListResponseDto(
+        Integer id,
         String sprint,
         String student,
         LocalDate date,

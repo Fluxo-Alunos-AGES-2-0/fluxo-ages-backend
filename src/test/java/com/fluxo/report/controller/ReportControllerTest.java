@@ -241,7 +241,7 @@ class ReportControllerTest {
     @Test
     @DisplayName("POST /report/sprint returns HTTP 400 when sprint exceeds maximum")
     void testCreateSprintReportInvalidSprintAboveMax() throws Exception {
-        String request = "{\"sprint\":5,\"predictedActivity\":\"Activity\",\"activityCompleted\":\"Completed\",\"problemsEncountered\":\"Problems\",\"learnedLessons\":\"Lessons\",\"nextSteps\":\"Steps\"}";
+        String request = "{\"sprint\":6,\"predictedActivity\":\"Activity\",\"activityCompleted\":\"Completed\",\"problemsEncountered\":\"Problems\",\"learnedLessons\":\"Lessons\",\"nextSteps\":\"Steps\"}";
 
         mockMvc.perform(post("/report/sprint")
                 .contentType(APPLICATION_JSON)
@@ -332,9 +332,9 @@ class ReportControllerTest {
     }
 
     @Test
-    @DisplayName("POST /report/sprint accepts valid sprint values 0-4")
+    @DisplayName("POST /report/sprint accepts valid sprint values 1-5")
     void testCreateSprintReportValidSprintRange() throws Exception {
-        for (int sprint = 0; sprint <= 4; sprint++) {
+        for (int sprint = 1; sprint <= 5; sprint++) {
             SprintReportRequestDto request = new SprintReportRequestDto(
                     sprint,
                     "Activity",

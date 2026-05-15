@@ -116,6 +116,7 @@ public class SprintReportService {
 
     private SprintReportListResponseDto toListResponseDto(SprintReport sprintReport) {
         return new SprintReportListResponseDto(
+                sprintReport.getId(),
                 "Sprint " + sprintReport.getSprint().trim(),
                 sprintReport.getStudentUser().getName(),
                 sprintReport.getCreateDate(),
