@@ -25,6 +25,23 @@ WHERE professor_user.email = 'professor@fluxo.com'
       WHERE p.name = 'Projeto Exemplo'
   );
 
+INSERT INTO project (id_user_teacher, name, description, status, period, observation, git_lab_link)
+SELECT
+    professor_user.id_user,
+    'Projeto Exemplo Secundario',
+    'Projeto seed adicional para testar filtro de horas por projeto',
+    'ATIVO',
+    '2026.1',
+    'Projeto adicional vinculado ao aluno seeded',
+    'https://gitlab.com/fluxo/projeto-exemplo-secundario'
+FROM "user" professor_user
+WHERE professor_user.email = 'professor@fluxo.com'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM project p
+      WHERE p.name = 'Projeto Exemplo Secundario'
+  );
+
 INSERT INTO team (id_project, id_user_teacher)
 SELECT
     project_seed.id_project,
@@ -32,6 +49,19 @@ SELECT
 FROM project project_seed
 JOIN "user" professor_user ON professor_user.email = 'professor@fluxo.com'
 WHERE project_seed.name = 'Projeto Exemplo'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM team t
+      WHERE t.id_project = project_seed.id_project
+  );
+
+INSERT INTO team (id_project, id_user_teacher)
+SELECT
+    project_seed.id_project,
+    professor_user.id_user
+FROM project project_seed
+JOIN "user" professor_user ON professor_user.email = 'professor@fluxo.com'
+WHERE project_seed.name = 'Projeto Exemplo Secundario'
   AND NOT EXISTS (
       SELECT 1
       FROM team t

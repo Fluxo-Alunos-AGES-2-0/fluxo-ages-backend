@@ -1,7 +1,8 @@
 package com.fluxo.hours.repository;
 
-import com.fluxo.hours.entity.HoursReport;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.fluxo.hours.entity.HoursReport;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,4 +16,6 @@ public interface HoursReportRepository extends JpaRepository<HoursReport, Intege
     List<HoursReport> findByStudentUserIdAndExitTimeIsNotNullOrderByEntryTimeDesc(Integer userId);
 
     List<HoursReport> findByStudentUserId(Integer userId);
+
+    List<HoursReport> findByStudentUserIdAndProjectIdAndExitTimeIsNotNullOrderByEntryTimeDesc(Integer userId, Integer projectId);
 }

@@ -5,11 +5,12 @@ import com.fluxo.hours.dto.HoursDTO;
 import com.fluxo.hours.dto.StartHoursResponseDto;
 import com.fluxo.hours.dto.StopHoursRequestDto;
 import com.fluxo.hours.dto.StopHoursResponseDto;
-import com.fluxo.hours.entity.HoursReport;
+import com.fluxo.hours.entity.HoursReportStatus;
 import com.fluxo.hours.exception.ActiveHoursNotFoundException;
 import com.fluxo.hours.exception.HoursAlreadyOpenException;
 import com.fluxo.hours.repository.HoursReportRepository;
 import com.fluxo.project.entity.Project;
+import com.fluxo.hours.entity.HoursReport;
 import com.fluxo.report.enums.ReportType;
 import com.fluxo.user.entity.StudentProfile;
 import com.fluxo.user.entity.User;
@@ -61,7 +62,7 @@ public class HoursService {
         hoursReport.setEditDate(now.toLocalDate());
         hoursReport.setStudentUser(authenticatedUser);
         hoursReport.setProject(project);
-        hoursReport.setActivityType(DEFAULT_ACTIVITY_TYPE);
+        hoursReport.setStatus(HoursReportStatus.PENDING);
         hoursReport.setEntryTime(now);
 
         HoursReport savedHoursReport = hoursReportRepository.save(hoursReport);
@@ -89,6 +90,7 @@ public class HoursService {
         hoursReport.setActivities(request.description());
         hoursReport.setExitTime(endTime);
         hoursReport.setTotalTimeSeconds(totalTimeSeconds);
+        hoursReport.setStatus(HoursReportStatus.APPROVED);
         hoursReport.setEditDate(LocalDate.now(ZoneOffset.UTC));
 
         HoursReport savedHoursReport = hoursReportRepository.save(hoursReport);
@@ -113,22 +115,6 @@ public class HoursService {
                 ));
     }
 
-    public List<StopHoursResponseDto> getMyHours() {
-        User authenticatedUser = authenticatedUserService.getAuthenticatedUser();
-
-        return hoursReportRepository
-                .findByStudentUserIdAndExitTimeIsNotNullOrderByEntryTimeDesc(authenticatedUser.getId())
-                .stream()
-                .map(hoursReport -> new StopHoursResponseDto(
-                        hoursReport.getId(),
-                        hoursReport.getActivities(),
-                        hoursReport.getEntryTime().toInstant(),
-                        hoursReport.getExitTime().toInstant(),
-                        hoursReport.getTotalTimeSeconds()
-                ))
-                .toList();
-    }
-
     public HoursDTO getHourControl() {
         User authenticatedUser = authenticatedUserService.getAuthenticatedUser();
 
@@ -148,6 +134,7 @@ public class HoursService {
         return hoursReportRepository
                 .findByStudentUserId(userId)
                 .stream()
+                .filter(hoursReport -> hoursReport.getStatus() == HoursReportStatus.APPROVED)
                 .map(HoursReport::getTotalTimeSeconds)
                 .filter(Objects::nonNull)
                 .mapToLong(Integer::longValue)
