@@ -1,6 +1,6 @@
-package com.fluxo.report.dto;
+package com.fluxo.hours.dto;
 
-import com.fluxo.report.entity.HoursReport;
+import com.fluxo.hours.entity.HoursReport;
 
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
@@ -29,7 +29,7 @@ public class HoursReportDto {
 
         this.total_hours = formatSeconds(report.getTotalTimeSeconds());
         this.activities = report.getActivities();
-        this.status = mapStatus(report);
+        this.status = mapStatus(report).name();
     }
 
     private String formatSeconds(Integer seconds) {
@@ -41,14 +41,17 @@ public class HoursReportDto {
         return String.format("%02d:%02d", hours, minutes);
     }
 
-    private String mapStatus(HoursReport report) {
+    private com.fluxo.hours.entity.HoursReportStatus mapStatus(HoursReport report) {
+        if (report.getStatus() != null) {
+            return report.getStatus();
+        }
         if (report.getRejectionJustification() != null && !report.getRejectionJustification().isBlank()) {
-            return "REJECTED";
+            return com.fluxo.hours.entity.HoursReportStatus.REJECTED;
         }
         if (report.getExitTime() == null) {
-            return "PENDING";
+            return com.fluxo.hours.entity.HoursReportStatus.PENDING;
         }
-        return "APPROVED";
+        return com.fluxo.hours.entity.HoursReportStatus.APPROVED;
     }
 
     public Long getId_report() { return id_report; }

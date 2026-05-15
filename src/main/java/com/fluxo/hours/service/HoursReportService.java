@@ -1,11 +1,9 @@
-package com.fluxo.report.service;
+package com.fluxo.hours.service;
 
-import com.fluxo.report.dto.HoursReportDto;
-import com.fluxo.report.entity.HoursReport;
-import com.fluxo.report.repository.HoursReportRepository;
+import com.fluxo.hours.dto.HoursReportDto;
+import com.fluxo.hours.repository.HoursReportRepository;
 import com.fluxo.user.entity.User;
 import com.fluxo.user.service.StudentService;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +20,7 @@ public class HoursReportService {
         this.studentService = studentService;
     }
 
-    public List<HoursReportDto> getMyReports(Integer idReport) {
+    public List<HoursReportDto> getMyReports(Integer idProject) {
         User user = getAuthenticatedUser();
         Integer projectId = getAuthenticatedProjectId();
 
@@ -30,16 +28,16 @@ public class HoursReportService {
             return List.of();
         }
 
-        if (idReport != null) {
-            HoursReport report = repository
-                    .findByIdAndStudentUserIdAndProjectId(idReport, user.getId(), projectId)
-                    .orElseThrow(EntityNotFoundException::new);
-
-            return List.of(new HoursReportDto(report));
+        if (idProject != null) {
+            return repository
+                    .findByStudentUserIdAndProjectIdAndExitTimeIsNotNullOrderByEntryTimeDesc(user.getId(), idProject)
+                    .stream()
+                    .map(HoursReportDto::new)
+                    .toList();
         }
 
         return repository
-                .findByStudentUserIdAndProjectId(user.getId(), projectId)
+                .findByStudentUserIdAndProjectIdAndExitTimeIsNotNullOrderByEntryTimeDesc(user.getId(), projectId)
                 .stream()
                 .map(HoursReportDto::new)
                 .toList();
@@ -56,7 +54,7 @@ public class HoursReportService {
 
     private Integer getAuthenticatedProjectId() {
         return studentService.getLoggedStudentProfile()
-                .map(profile -> profile.getCurrentProject().getId())
+                .map(profile -> profile.currentProject().id())
                 .orElse(null);
     }
 }

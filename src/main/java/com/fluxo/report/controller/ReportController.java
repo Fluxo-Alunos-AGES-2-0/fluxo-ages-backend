@@ -1,7 +1,7 @@
 package com.fluxo.report.controller;
 
-import com.fluxo.report.dto.HoursReportDto;
-import com.fluxo.report.service.HoursReportService;
+import com.fluxo.hours.dto.HoursReportDto;
+import com.fluxo.hours.service.HoursReportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -33,8 +33,8 @@ public class ReportController {
             @ApiResponse(responseCode = "401", description = "Não autorizado")
     })
     public ResponseEntity<List<HoursReportDto>> getMyHours(
-            @RequestParam(value = "id_report", required = false) Integer idReport
+            @RequestParam(value = "id_project", required = false) Integer idProject
     ) {
-        return ResponseEntity.ok(hoursReportService.getMyReports(idReport));
+        return ResponseEntity.ok(hoursReportService.getMyReports(idProject));
     }
 }

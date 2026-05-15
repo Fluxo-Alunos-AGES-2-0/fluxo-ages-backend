@@ -1,5 +1,6 @@
-package com.fluxo.report.entity;
+package com.fluxo.hours.entity;
 
+import com.fluxo.report.entity.Report;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,8 +19,9 @@ public class HoursReport extends Report {
     @Column
     private String activities;
 
-    @Column(name = "activity_type")
-    private Integer activityType;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private HoursReportStatus status;
 
     @Column(name = "entry_time", nullable = false, columnDefinition = "timestamp with time zone")
     private OffsetDateTime entryTime;

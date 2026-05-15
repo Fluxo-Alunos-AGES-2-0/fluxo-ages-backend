@@ -54,3 +54,85 @@ WHERE student_user.email = 'aluno@fluxo.com'
       FROM student_profile sp
       WHERE sp.id_user_student = student_user.id_user
   );
+
+INSERT INTO report (type, create_date, edit_date, id_user_student, id_project)
+SELECT
+    1,
+    DATE '2026-03-19',
+    DATE '2026-03-19',
+    student_user.id_user,
+    project_seed.id_project
+FROM "user" student_user
+JOIN project project_seed ON project_seed.name = 'Projeto Exemplo'
+WHERE student_user.email = 'aluno@fluxo.com'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM report r
+      WHERE r.type = 1
+        AND r.id_user_student = student_user.id_user
+        AND r.id_project = project_seed.id_project
+        AND r.create_date = DATE '2026-03-19'
+  );
+
+INSERT INTO hours_report (id_report, activities, status, entry_time, exit_time, total_time_seconds, rejection_justification)
+SELECT
+    seeded_report.id_report,
+    'Desenvolvimento da tela de login.',
+    'APPROVED',
+    TIMESTAMPTZ '2026-03-19 18:00:00+00',
+    TIMESTAMPTZ '2026-03-19 19:00:00+00',
+    3600,
+    NULL
+FROM report seeded_report
+JOIN "user" student_user ON student_user.id_user = seeded_report.id_user_student
+JOIN project project_seed ON project_seed.id_project = seeded_report.id_project
+WHERE student_user.email = 'aluno@fluxo.com'
+  AND project_seed.name = 'Projeto Exemplo'
+  AND seeded_report.type = 1
+  AND seeded_report.create_date = DATE '2026-03-19'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM hours_report hr
+      WHERE hr.id_report = seeded_report.id_report
+  );
+
+INSERT INTO report (type, create_date, edit_date, id_user_student, id_project)
+SELECT
+    1,
+    DATE '2026-03-21',
+    DATE '2026-03-21',
+    student_user.id_user,
+    project_seed.id_project
+FROM "user" student_user
+JOIN project project_seed ON project_seed.name = 'Projeto Exemplo'
+WHERE student_user.email = 'aluno@fluxo.com'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM report r
+      WHERE r.type = 1
+        AND r.id_user_student = student_user.id_user
+        AND r.id_project = project_seed.id_project
+        AND r.create_date = DATE '2026-03-21'
+  );
+
+INSERT INTO hours_report (id_report, activities, status, entry_time, exit_time, total_time_seconds, rejection_justification)
+SELECT
+    seeded_report.id_report,
+    'Desenvolvimento de testes',
+    'APPROVED',
+    TIMESTAMPTZ '2026-03-21 18:00:00+00',
+    TIMESTAMPTZ '2026-03-21 19:15:00+00',
+    4500,
+    NULL
+FROM report seeded_report
+JOIN "user" student_user ON student_user.id_user = seeded_report.id_user_student
+JOIN project project_seed ON project_seed.id_project = seeded_report.id_project
+WHERE student_user.email = 'aluno@fluxo.com'
+  AND project_seed.name = 'Projeto Exemplo'
+  AND seeded_report.type = 1
+  AND seeded_report.create_date = DATE '2026-03-21'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM hours_report hr
+      WHERE hr.id_report = seeded_report.id_report
+  );

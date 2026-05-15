@@ -5,11 +5,12 @@ import com.fluxo.hours.dto.HoursDTO;
 import com.fluxo.hours.dto.StartHoursResponseDto;
 import com.fluxo.hours.dto.StopHoursRequestDto;
 import com.fluxo.hours.dto.StopHoursResponseDto;
+import com.fluxo.hours.entity.HoursReportStatus;
 import com.fluxo.hours.exception.ActiveHoursNotFoundException;
 import com.fluxo.hours.exception.HoursAlreadyOpenException;
 import com.fluxo.hours.repository.HoursReportRepository;
 import com.fluxo.project.entity.Project;
-import com.fluxo.report.entity.HoursReport;
+import com.fluxo.hours.entity.HoursReport;
 import com.fluxo.user.entity.StudentProfile;
 import com.fluxo.user.entity.User;
 import jakarta.persistence.EntityManager;
@@ -32,7 +33,6 @@ import java.util.Optional;
 public class HoursService {
 
     private static final int HOURS_REPORT_TYPE = 1;
-    private static final int DEFAULT_ACTIVITY_TYPE = 1;
     private static final long TOTAL_SECONDS = 216000L;
 
     private final HoursReportRepository hoursReportRepository;
@@ -61,7 +61,7 @@ public class HoursService {
         hoursReport.setEditDate(now.toLocalDate());
         hoursReport.setStudentUser(authenticatedUser);
         hoursReport.setProject(project);
-        hoursReport.setActivityType(DEFAULT_ACTIVITY_TYPE);
+        hoursReport.setStatus(HoursReportStatus.PENDING);
         hoursReport.setEntryTime(now);
 
         HoursReport savedHoursReport = hoursReportRepository.save(hoursReport);
@@ -89,6 +89,7 @@ public class HoursService {
         hoursReport.setActivities(request.description());
         hoursReport.setExitTime(endTime);
         hoursReport.setTotalTimeSeconds(totalTimeSeconds);
+        hoursReport.setStatus(HoursReportStatus.APPROVED);
         hoursReport.setEditDate(LocalDate.now(ZoneOffset.UTC));
 
         HoursReport savedHoursReport = hoursReportRepository.save(hoursReport);
