@@ -7,6 +7,7 @@ import com.fluxo.hours.dto.StartHoursResponseDto;
 import com.fluxo.hours.dto.StopHoursRequestDto;
 import com.fluxo.hours.dto.StopHoursResponseDto;
 import com.fluxo.hours.entity.HoursReport;
+import com.fluxo.hours.entity.HoursReportStatus;
 import com.fluxo.hours.exception.ActiveHoursNotFoundException;
 import com.fluxo.hours.exception.HoursAlreadyOpenException;
 import com.fluxo.hours.repository.HoursReportRepository;
@@ -32,7 +33,6 @@ import java.util.Optional;
 public class HoursService {
 
     private static final ReportType HOURS_REPORT_TYPE = ReportType.HOURS;
-    private static final int DEFAULT_ACTIVITY_TYPE = 1;
     private static final long TOTAL_SECONDS = 216000L;
 
     private final HoursReportRepository hoursReportRepository;
@@ -63,7 +63,7 @@ public class HoursService {
         hoursReport.setEditDate(now.toLocalDate());
         hoursReport.setStudentUser(authenticatedUser);
         hoursReport.setProject(project);
-        hoursReport.setActivityType(DEFAULT_ACTIVITY_TYPE);
+        hoursReport.setStatus(HoursReportStatus.APPROVED);
         hoursReport.setEntryTime(now);
 
         HoursReport savedHoursReport = hoursReportRepository.save(hoursReport);
