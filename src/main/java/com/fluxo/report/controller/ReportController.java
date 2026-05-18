@@ -5,6 +5,7 @@ import com.fluxo.report.dto.ProgressReportResponseDto;
 import com.fluxo.report.dto.ReportArchiveResponseDto;
 import com.fluxo.report.dto.SprintReportRequestDto;
 import com.fluxo.report.dto.SprintReportResponseDto;
+import com.fluxo.report.dto.SprintReportListResponseDto;
 import com.fluxo.report.service.ReportService;
 import com.fluxo.report.service.SprintReportService;
 import com.fluxo.user.entity.User;
@@ -70,6 +71,21 @@ public class ReportController {
             @Valid @RequestBody SprintReportRequestDto request) {
         SprintReportResponseDto response = sprintReportService.createSprintReport(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/me/sprint")
+    @Operation(
+            summary = "Listar relatorios de sprint",
+            description = "Retorna os relatorios de sprint do aluno autenticado, com filtro opcional por projeto"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Relatorios de sprint retornados com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Usuario nao autenticado")
+    })
+    public ResponseEntity<List<SprintReportListResponseDto>> getMySprintReports(
+            @RequestParam(required = false) Integer projectId
+    ) {
+        return ResponseEntity.ok(sprintReportService.getMySprintReports(projectId));
     }
 
     @GetMapping("/me/progress")

@@ -2,9 +2,11 @@ package com.fluxo.hours.controller;
 
 import com.fluxo.hours.dto.ActiveHoursResponseDto;
 import com.fluxo.hours.dto.HoursDTO;
+import com.fluxo.hours.dto.HoursReportDto;
 import com.fluxo.hours.dto.StartHoursResponseDto;
 import com.fluxo.hours.dto.StopHoursRequestDto;
 import com.fluxo.hours.dto.StopHoursResponseDto;
+import com.fluxo.hours.service.HoursReportService;
 import com.fluxo.hours.service.HoursService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -13,7 +15,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -26,12 +33,13 @@ import jakarta.validation.Valid;
 public class HoursController {
 
     private final HoursService hoursService;
+    private final HoursReportService hoursReportService;
 
     @PostMapping("/start")
     @Operation(summary = "Iniciar registro de hora", description = "Inicia a contagem de tempo de trabalho (check-in)")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "Horário iniciado com sucesso"),
-        @ApiResponse(responseCode = "400", description = "Já existe uma contagem de tempo ativa")
+        @ApiResponse(responseCode = "201", description = "Horario iniciado com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Ja existe uma contagem de tempo ativa")
     })
     public ResponseEntity<StartHoursResponseDto> startHours() {
         StartHoursResponseDto response = hoursService.startHours();
@@ -41,8 +49,8 @@ public class HoursController {
     @PostMapping("/stop")
     @Operation(summary = "Parar registro de hora", description = "Para a contagem de tempo de trabalho (check-out)")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Horário parado com sucesso"),
-        @ApiResponse(responseCode = "400", description = "Nenhum registro ativo para ser parado ou dados inválidos")
+        @ApiResponse(responseCode = "200", description = "Horario parado com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Nenhum registro ativo para ser parado ou dados invalidos")
     })
     public ResponseEntity<StopHoursResponseDto> stopHours(
             @Valid @RequestBody StopHoursRequestDto request
@@ -64,16 +72,22 @@ public class HoursController {
     }
 
     @GetMapping("/me")
-    @Operation(summary = "Obter minhas horas", description = "Retorna a lista do histórico de horas resgistradas pelo usuário autenticado")
+    @Operation(
+            summary = "Obter historico de horas do estudante autenticado",
+            description = "Retorna todos os registros de horas submetidos pelo estudante autenticado, independentemente do status."
+    )
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Histórico retornado com sucesso")
+            @ApiResponse(responseCode = "200", description = "Historico de horas retornado com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Nao autorizado")
     })
-    public ResponseEntity<List<StopHoursResponseDto>> getMyHours() {
-        return ResponseEntity.ok(hoursService.getMyHours());
+    public ResponseEntity<List<HoursReportDto>> getMyHours(
+            @RequestParam(value = "id_project", required = false) Integer idProject
+    ) {
+        return ResponseEntity.ok(hoursReportService.getMyHours(idProject));
     }
 
     @GetMapping("/me/control")
-    @Operation(summary = "Obter informações de controle de horas", description = "Retorna informações necessárias para o controle de Horas (Concluídas, A cumprir, Total e Percentual).")
+    @Operation(summary = "Obter informacoes de controle de horas", description = "Retorna informacoes necessarias para o controle de Horas (Concluidas, A cumprir, Total e Percentual).")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Total de horas retornado com sucesso")
     })
