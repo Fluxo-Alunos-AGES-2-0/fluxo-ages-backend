@@ -3,6 +3,7 @@ package com.fluxo.hours.controller;
 import com.fluxo.hours.dto.*;
 import com.fluxo.hours.exception.ActiveHoursNotFoundException;
 import com.fluxo.hours.exception.HoursAlreadyOpenException;
+import com.fluxo.hours.service.HoursReportService;
 import com.fluxo.hours.service.HoursService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName("HoursController Unit Tests")
 class HoursControllerUnitTest {
 
     @InjectMocks
@@ -30,6 +32,8 @@ class HoursControllerUnitTest {
 
     @Mock
     private HoursService hoursService;
+    @Mock
+    private HoursReportService hoursReportService;
 
     @Test
     @DisplayName("Should return 200 when active hours exists")
@@ -60,29 +64,53 @@ class HoursControllerUnitTest {
     @Test
     @DisplayName("Should return 200 when get my hours")
     void shouldReturn200WhenGetMyHours() {
-        List<StopHoursResponseDto> list = List.of(
-                new StopHoursResponseDto(1, "Atividade 1", Instant.now(), Instant.now(), 3600),
-                new StopHoursResponseDto(2, "Atividade 2", Instant.now(), Instant.now(), 7200)
-        );
-        when(hoursService.getMyHours()).thenReturn(list);
 
-        ResponseEntity<List<StopHoursResponseDto>> response = hoursController.getMyHours();
+        List<HoursReportDto> list = List.of(
+                new HoursReportDto(
+                        1L,
+                        "2026-05-17T10:00:00",
+                        "2026-05-17T11:00:00",
+                        3600,
+                        "Atividade 1",
+                        "APPROVED"
+                ),
+                new HoursReportDto(
+                        2L,
+                        "2026-05-17T12:00:00",
+                        "2026-05-17T14:00:00",
+                        7200,
+                        "Atividade 2",
+                        "PENDING"
+                )
+        );
+
+        when(hoursReportService.getMyHours(2)).thenReturn(list);
+
+        ResponseEntity<List<HoursReportDto>> response =
+                hoursController.getMyHours(2);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(2, response.getBody().size());
-        verify(hoursService, times(1)).getMyHours();
+
+        verify(hoursReportService, times(1))
+                .getMyHours(2);
     }
 
     @Test
     @DisplayName("Should return 200 with empty list when no hours registered")
     void shouldReturn200WithEmptyListWhenNoHoursRegistered() {
-        when(hoursService.getMyHours()).thenReturn(List.of());
 
-        ResponseEntity<List<StopHoursResponseDto>> response = hoursController.getMyHours();
+        when(hoursReportService.getMyHours(null))
+                .thenReturn(List.of());
+
+        ResponseEntity<List<HoursReportDto>> response =
+                hoursController.getMyHours(null);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(response.getBody().isEmpty());
-        verify(hoursService, times(1)).getMyHours();
+
+        verify(hoursReportService, times(1))
+                .getMyHours(null);
     }
 
     @Test
