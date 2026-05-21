@@ -34,16 +34,11 @@ public class EmailService {
         System.out.println("E-mail enviado com sucesso para: " + to);
     }
 
-    /**
-     * @param to Email do aluno
-     * @param studentName Nome do aluno
-     * @param entryTime Horário de início (em UTC)
-     */
     public void sendHoursStartedEmail(String to, String studentName, Instant entryTime) {
         String subject = "Início de Registro de Horas";
         
         // Converte o horário para formato legível (DD/MM/YYYY HH:mm:ss)
-        OffsetDateTime offsetDateTime = OffsetDateTime.ofInstant(entryTime, ZoneOffset.of("-03:00")); // UTC-3 (horário de Brasília)
+        OffsetDateTime offsetDateTime = OffsetDateTime.ofInstant(entryTime, ZoneOffset.of("-03:00"));
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
         String formattedTime = offsetDateTime.format(formatter);
 
@@ -62,13 +57,6 @@ public class EmailService {
         System.out.println("E-mail de início de horas enviado com sucesso para: " + to);
     }
 
-    /**
-     * @param to Email do aluno
-     * @param studentName Nome do aluno
-     * @param entryTime Horário de início (em UTC)
-     * @param exitTime Horário de término (em UTC)
-     * @param totalTimeSeconds Duração total da sessão em segundos
-     */
     public void sendHoursStoppedEmail(String to, String studentName, Instant entryTime, Instant exitTime, Integer totalTimeSeconds) {
         String subject = "Encerramento de Registro de Horas";
 

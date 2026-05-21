@@ -67,8 +67,7 @@ public class HoursService {
         hoursReport.setEntryTime(now);
 
         HoursReport savedHoursReport = hoursReportRepository.save(hoursReport);
-
-        // Enviar email de início de horas (sem interromper o fluxo em caso de falha)
+        
         try {
             emailService.sendHoursStartedEmail(
                     authenticatedUser.getEmail(),
