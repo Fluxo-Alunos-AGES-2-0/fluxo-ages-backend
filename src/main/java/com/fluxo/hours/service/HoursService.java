@@ -138,22 +138,6 @@ public class HoursService {
                 ));
     }
 
-    public List<StopHoursResponseDto> getMyHours() {
-        User authenticatedUser = authenticatedUserService.getAuthenticatedUser();
-
-        return hoursReportRepository
-                .findByStudentUserIdAndExitTimeIsNotNullOrderByEntryTimeDesc(authenticatedUser.getId())
-                .stream()
-                .map(hoursReport -> new StopHoursResponseDto(
-                        hoursReport.getId(),
-                        hoursReport.getActivities(),
-                        hoursReport.getEntryTime().toInstant(),
-                        hoursReport.getExitTime().toInstant(),
-                        hoursReport.getTotalTimeSeconds()
-                ))
-                .toList();
-    }
-
     public HoursDTO getHourControl() {
         User authenticatedUser = authenticatedUserService.getAuthenticatedUser();
 
