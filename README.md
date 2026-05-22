@@ -92,7 +92,14 @@ docker-compose up --build
 
 > **Nota:** O Hibernate está configurado com `ddl-auto=update`. Isso significa que as tabelas serão criadas e atualizadas automaticamente no banco de dados assim que a aplicação subir, espelhando as suas classes `@Entity`.
 
-### 🛑 Como parar o projeto e limpar a memória
+### � Novo endpoint implementado
+- `GET /report/template` - Retorna o arquivo DOCX do template de relatório para download.
+  - Autenticação obrigatória via token JWT
+  - Retorna `200` com `Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document`
+  - `Content-Disposition: attachment; filename="report-template.docx"`
+  - `404` quando o template não existe no servidor
+
+### �🛑 Como parar o projeto e limpar a memória
 Quando terminar o dia de trabalho, sempre desligue os containers rodando:
 ```bash
 docker-compose down
