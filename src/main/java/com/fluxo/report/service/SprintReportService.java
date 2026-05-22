@@ -4,6 +4,7 @@ import com.fluxo.project.entity.Project;
 import com.fluxo.report.dto.SprintReportListResponseDto;
 import com.fluxo.report.dto.SprintReportRequestDto;
 import com.fluxo.report.dto.SprintReportResponseDto;
+import com.fluxo.report.dto.UpdateSprintReportRequestDto;
 import com.fluxo.report.entity.SprintReport;
 import com.fluxo.report.enums.ReportType;
 import com.fluxo.report.repository.SprintReportRepository;
@@ -68,6 +69,34 @@ public class SprintReportService {
         SprintReport savedSprintReport = sprintReportRepository.save(sprintReport);
 
         return toResponseDto(savedSprintReport);
+    }
+
+    public SprintReportResponseDto updateSprintReport(Integer id, UpdateSprintReportRequestDto request) {
+        User authenticatedUser = authenticatedUserService.getAuthenticatedUser();
+
+        SprintReport report = getSprintReportById(id);
+        if (!report.getStudentUser().getId().equals(authenticatedUser.getId())) {
+            throw new IllegalStateException("Você não tem permissão para editar este relatório.");
+        }
+
+        report.setPredictedActivity(request.predictedActivity());
+        report.setActivityCompleted(request.activityCompleted());
+        report.setProblemsEncountered(request.problemsEncountered());
+        report.setLearnedLessons(request.learnedLessons());
+        report.setNextSteps(request.nextSteps());
+        report.setEditDate(LocalDate.now());
+
+        SprintReport updatedReport = sprintReportRepository.save(report);
+
+
+        return toResponseDto(updatedReport);
+    }
+
+    public SprintReport getSprintReportById(Integer reportId) {
+        SprintReport sprintReport = sprintReportRepository.findSprintReportById(reportId);
+        if (sprintReport == null)
+            throw new IllegalStateException("Relatório de id: " + reportId + "não foi encontrado");
+        return sprintReport;
     }
 
     public List<SprintReportListResponseDto> getMySprintReports(Integer projectId) {
