@@ -27,14 +27,6 @@ public class StudentHistory {
     @Column(name = "semester_year", nullable = false)
     private Short semesterYear;
 
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "student_status", nullable = false, length = 20)
-    private StudentStatus studentStatus = StudentStatus.EM_ANDAMENTO; // Valor padrão: EM_ANDAMENTO
-
-    @Column(name = "ages_level", nullable = false, columnDefinition = "integer check (ages_level >= 1 and ages_level <= 4) default 1")
-    private Integer agesLevel = 1; // Valor padrão: 1
-
     @ManyToOne(optional = false)
     @JoinColumn(name = "id_class", referencedColumnName = "id_class", nullable = false)
     private ClassGroup classGroup;
