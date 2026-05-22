@@ -41,3 +41,5 @@ Thumbs.db
 postgres_data/
 db-data/
 docker-compose.override.yml
+
+schema.sql
