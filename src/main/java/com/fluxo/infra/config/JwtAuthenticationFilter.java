@@ -50,7 +50,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = authorizationHeader.substring(BEARER_PREFIX.length());
 
         try {
-            Long userId = jwtService.extractUserId(token);
+            Integer userId = jwtService.extractUserId(token);
             Optional<User> userOptional = userRepository.findById(userId);
 
             if (userOptional.isPresent() && SecurityContextHolder.getContext().getAuthentication() == null) {

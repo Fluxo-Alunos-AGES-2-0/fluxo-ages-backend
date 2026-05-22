@@ -1,8 +1,11 @@
 package com.fluxo.infra.exception;
 
-import com.fluxo.attendance.exception.ActiveAttendanceNotFoundException;
-import com.fluxo.attendance.exception.AttendanceAlreadyOpenException;
 import com.fluxo.auth.exception.InvalidCredentialsException;
+import com.fluxo.hours.exception.ActiveHoursNotFoundException;
+import com.fluxo.hours.exception.HoursAlreadyOpenException;
+import com.fluxo.report.exception.InvalidReportFileException;
+import com.fluxo.report.exception.StudentProjectNotFoundException;
+import com.fluxo.report.exception.ReportStorageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -20,14 +23,14 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", ex.getMessage()));
     }
 
-    @ExceptionHandler(AttendanceAlreadyOpenException.class)
-    public ResponseEntity<Map<String, String>> handleAttendanceAlreadyOpen(AttendanceAlreadyOpenException ex) {
+    @ExceptionHandler(HoursAlreadyOpenException.class)
+    public ResponseEntity<Map<String, String>> handleHoursAlreadyOpen(HoursAlreadyOpenException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(Map.of("error", ex.getMessage()));
     }
 
-    @ExceptionHandler(ActiveAttendanceNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleActiveAttendanceNotFound(ActiveAttendanceNotFoundException ex) {
+    @ExceptionHandler(ActiveHoursNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleActiveHoursNotFound(ActiveHoursNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("error", ex.getMessage()));
     }
@@ -43,5 +46,23 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.badRequest()
                 .body(Map.of("error", errorMessage));
+    }
+
+    @ExceptionHandler(InvalidReportFileException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidReportFile(InvalidReportFileException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(StudentProjectNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleStudentProjectNotFound(StudentProjectNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ReportStorageException.class)
+    public ResponseEntity<Map<String, String>> handleReportStorage(ReportStorageException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Erro ao processar o upload do relatório. Por favor, tente novamente."));
     }
 }

@@ -28,7 +28,8 @@ public class AuthService {
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final EmailService emailService;
 
-    public AuthService(JwtService jwtService, UserRepository userRepository, PasswordEncoder passwordEncoder, PasswordResetTokenRepository passwordResetTokenRepository, EmailService emailService) {
+    public AuthService(JwtService jwtService, UserRepository userRepository, PasswordEncoder passwordEncoder,
+            PasswordResetTokenRepository passwordResetTokenRepository, EmailService emailService) {
         this.jwtService = jwtService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -37,13 +38,13 @@ public class AuthService {
     }
 
     public LoginResponse login(LoginRequest request) {
-        String identifier = request.email() != null && !request.email().isBlank() ? request.email() : request.username();
-        
+        String identifier = request.username();
+
         if (identifier == null || identifier.isBlank()) {
             throw new InvalidCredentialsException("Credenciais invalidas");
         }
 
-        User user = userRepository.findByEmail(identifier)
+        User user = userRepository.findByIdentifierIgnoreCase(identifier)
                 .orElseThrow(() -> new InvalidCredentialsException("Credenciais invalidas"));
 
         boolean isPasswordValid = passwordEncoder.matches(request.password(), user.getPassword());
@@ -87,9 +88,11 @@ public class AuthService {
             throw new IllegalArgumentException("A nova senha é obrigatória.");
         }
 
-        PasswordResetToken passwordResetToken = passwordResetTokenRepository.findByToken(resetPasswordRequest.getToken()).orElse(null);
+        PasswordResetToken passwordResetToken = passwordResetTokenRepository
+                .findByToken(resetPasswordRequest.getToken()).orElse(null);
 
-        if (passwordResetToken == null || passwordResetToken.isUsed() || passwordResetToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+        if (passwordResetToken == null || passwordResetToken.isUsed()
+                || passwordResetToken.getExpiresAt().isBefore(LocalDateTime.now())) {
             throw new BadCredentialsException("Link de recuperação inválido ou expirado");
         }
 

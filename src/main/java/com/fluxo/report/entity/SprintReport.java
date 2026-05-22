@@ -2,32 +2,28 @@ package com.fluxo.report.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDate;
 
 @Entity
 @Table(name = "sprint_report")
-@PrimaryKeyJoinColumn(name = "report_id") // Faz o link com o ID da classe Report
+@PrimaryKeyJoinColumn(name = "id_report")
 @Getter @Setter @NoArgsConstructor
 public class SprintReport extends Report {
 
-    @Column(length = 10)
+    @Column(nullable = false, length = 2, columnDefinition = "char(2)")
     private String sprint;
 
-    @Column(name = "planned_activity")
-    private String plannedActivity;
+    @Column(name = "predicted_activity", nullable = false)
+    private String predictedActivity;
 
-    @Column(name = "completed_activity")
-    private String completedActivity;
+    @Column(name = "activity_completed", nullable = false)
+    private String activityCompleted;
 
-    @Column(name = "problems_encountered")
+    @Column(name = "problems_encountered", nullable = false)
     private String problemsEncountered;
 
-    @Column(name = "lessons_learned")
-    private String lessonsLearned;
+    @Column(name = "learned_lessons", nullable = false)
+    private String learnedLessons;
 
-    @Column(name = "next_steps")
+    @Column(name = "next_steps", nullable = false)
     private String nextSteps;
-
-    @Column(name = "sprint_end_date")
-    private LocalDate sprintEndDate;
 }
