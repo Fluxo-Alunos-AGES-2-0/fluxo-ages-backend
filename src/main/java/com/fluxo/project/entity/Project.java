@@ -3,6 +3,7 @@ package com.fluxo.project.entity;
 import com.fluxo.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
+import java.util.Set;
 
 @Entity
 @Table(name = "project")
@@ -35,4 +36,24 @@ public class Project {
     @ManyToOne(optional = false)
     @JoinColumn(name = "id_user_teacher", referencedColumnName = "id_user", nullable = false)
     private User teacherUser;
+
+    @Column(name = "summary")
+    private String summary;
+
+    @Column(name = "thumbnail_url")
+    private String thumbnailUrl;
+
+    @Column(name = "group_photo_url")
+    private String groupPhotoUrl;
+
+    @Column(name = "semester_year")
+    private String semesterYear;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "project_technology",
+        joinColumns = @JoinColumn(name = "id_project"),
+        inverseJoinColumns = @JoinColumn(name = "id_technology")
+    )
+    private Set<Technology> technologies;
 }

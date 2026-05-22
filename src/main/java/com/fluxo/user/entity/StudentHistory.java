@@ -38,4 +38,11 @@ public class StudentHistory {
     @ManyToOne(optional = false)
     @JoinColumn(name = "id_project", referencedColumnName = "id_project", nullable = false)
     private Project project;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "student_status", nullable = false, length = 20)
+    private StudentStatus studentStatus = StudentStatus.EM_ANDAMENTO;
+
+    @Column(name = "ages_level", nullable = false)
+    private Integer agesLevel = 1;
 }
