@@ -24,10 +24,8 @@ public class ProjectService {
     public List<ProjectListResponseDto> getMyProjects() {
         Integer userId = authenticatedUserService.getUserId();
 
-        // Fetch all student histories ordered by most recent first
         List<StudentHistory> histories = studentHistoryRepository.findByStudentUserIdOrderByRecent(userId);
 
-        // Count members for each project-semester combination
         Map<String, Integer> memberCountByProjectSemester = new HashMap<>();
         for (StudentHistory history : histories) {
             if (history.getProject() != null && history.getProject().getSemesterYear() != null) {
@@ -42,7 +40,6 @@ public class ProjectService {
             }
         }
 
-        // Process histories and convert to DTOs, removing duplicates
         Map<Integer, ProjectListResponseDto> dtoMap = new LinkedHashMap<>();
 
         for (StudentHistory history : histories) {
