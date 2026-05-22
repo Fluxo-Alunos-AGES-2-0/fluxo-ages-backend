@@ -8,11 +8,12 @@ VALUES
     ('Professor', '2355551354', 'professor@fluxo.com', '$2a$10$xqtam99YRjJmfYAEHiwXoueQ/BLK5MKbu0v2ezeq02iJhN722xxaS', 'PROFESSOR')
 ON CONFLICT (enrollment_number) DO NOTHING;
 
-INSERT INTO project (id_user_teacher, name, description, status, period, observation, git_lab_link)
+INSERT INTO project (id_user_teacher, name, description, summary, status, period, observation, git_lab_link)
 SELECT
     professor_user.id_user,
     'Projeto Exemplo',
     'Projeto seed para perfil do aluno',
+    'Resumo projeto exemplo',
     'ATIVO',
     '2026.1',
     'Projeto vinculado ao perfil seeded',
@@ -25,11 +26,12 @@ WHERE professor_user.email = 'professor@fluxo.com'
       WHERE p.name = 'Projeto Exemplo'
   );
 
-INSERT INTO project (id_user_teacher, name, description, status, period, observation, git_lab_link)
+INSERT INTO project (id_user_teacher, name, description, summary, status, period, observation, git_lab_link)
 SELECT
     professor_user.id_user,
     'Projeto Exemplo Secundario',
     'Projeto seed adicional para testar filtro de horas por projeto',
+    'Resumo projeto secundario',
     'ATIVO',
     '2026.1',
     'Projeto adicional vinculado ao aluno seeded',
@@ -255,11 +257,12 @@ WHERE student_user.email = 'aluno@fluxo.com'
   );
 
 -- report RA com projeto ANDAMENTO
-INSERT INTO project (id_user_teacher, name, description, status, period, observation, git_lab_link)
+INSERT INTO project (id_user_teacher, name, description, summary, status, period, observation, git_lab_link)
 SELECT
     u.id_user,
     'ANDAMENTO',
-    'Projeto seed para relatório de andamento',
+    'Projeto seed para relatÃ³rio de andamento',
+    'Resumo andamento',
     'ATIVO',
     '2026.1',
     NULL,
@@ -283,11 +286,12 @@ WHERE p.name = 'ANDAMENTO' AND r.type = 'RA'
   AND NOT EXISTS (SELECT 1 FROM report_review rr WHERE rr.id_report = r.id_report);
 
 -- report RF com projeto FINAL
-INSERT INTO project (id_user_teacher, name, description, status, period, observation, git_lab_link)
+INSERT INTO project (id_user_teacher, name, description, summary, status, period, observation, git_lab_link)
 SELECT
     u.id_user,
     'FINAL',
-    'Projeto seed para relatório final',
+    'Projeto seed para relatÃ³rio final',
+    'Resumo final',
     'ATIVO',
     '2026.1',
     NULL,
