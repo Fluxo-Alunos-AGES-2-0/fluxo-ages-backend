@@ -113,7 +113,7 @@ public class ReportController {
             @ApiResponse(responseCode = "401", description = "Usuario nao autenticado"),
             @ApiResponse(responseCode = "500", description = "Erro interno ao autalizar relatorio de sprint")
     })
-    public ResponseEntity<SprintReportResponseDto> updateSprintReport(Integer id, UpdateSprintReportRequestDto request) {
+    public ResponseEntity<SprintReportResponseDto> updateSprintReport(@PathVariable Integer id, @Valid @RequestBody UpdateSprintReportRequestDto request) {
         SprintReportResponseDto updatedSprintReport = sprintReportService.updateSprintReport(id, request);
         return ResponseEntity.ok(updatedSprintReport);
     }
