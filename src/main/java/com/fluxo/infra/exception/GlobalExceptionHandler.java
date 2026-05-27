@@ -4,6 +4,7 @@ import com.fluxo.auth.exception.InvalidCredentialsException;
 import com.fluxo.hours.exception.ActiveHoursNotFoundException;
 import com.fluxo.hours.exception.HoursAlreadyOpenException;
 import com.fluxo.report.exception.InvalidReportFileException;
+import com.fluxo.report.exception.ReportNotFoundException;
 import com.fluxo.report.exception.StudentProjectNotFoundException;
 import com.fluxo.report.exception.ReportStorageException;
 import org.springframework.http.HttpStatus;
@@ -64,5 +65,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleReportStorage(ReportStorageException ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "Erro ao processar o upload do relatório. Por favor, tente novamente."));
+    }
+
+    @ExceptionHandler(ReportNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleReportNotFound(ReportNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("message", ex.getMessage()));
     }
 }

@@ -111,10 +111,11 @@ public class ReportController {
             @ApiResponse(responseCode = "200", description = "Relatório alterado com sucesso!"),
             @ApiResponse(responseCode = "400", description = "Campos obrigatorios não podem ser vazio."),
             @ApiResponse(responseCode = "401", description = "Usuario nao autenticado"),
+            @ApiResponse(responseCode = "404", description = "Relatorio não encontrado"),
             @ApiResponse(responseCode = "500", description = "Erro interno ao autalizar relatorio de sprint")
     })
-    public ResponseEntity<SprintReportResponseDto> updateSprintReport(@PathVariable Integer id, @Valid @RequestBody UpdateSprintReportRequestDto request) {
-        SprintReportResponseDto updatedSprintReport = sprintReportService.updateSprintReport(id, request);
+    public ResponseEntity<UpdateSprintReportResponseDto> updateSprintReport(@PathVariable Integer id, @Valid @RequestBody UpdateSprintReportRequestDto request) {
+        UpdateSprintReportResponseDto updatedSprintReport = sprintReportService.updateSprintReport(id, request);
         return ResponseEntity.ok(updatedSprintReport);
     }
 }

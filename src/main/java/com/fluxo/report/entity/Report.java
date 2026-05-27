@@ -8,6 +8,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "report")
@@ -25,10 +26,10 @@ public class Report {
     private ReportType type;
 
     @Column(name = "create_date", nullable = false)
-    private LocalDate createDate;
+    private LocalDateTime createDate;
 
     @Column(name = "edit_date", nullable = false)
-    private LocalDate editDate;
+    private LocalDateTime editDate;
 
     @Column(name = "grade", precision = 4, scale = 2)
     private BigDecimal grade;
