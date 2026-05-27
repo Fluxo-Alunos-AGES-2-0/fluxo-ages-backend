@@ -1,6 +1,5 @@
 package com.fluxo.schedule.entity;
 
-import com.fluxo.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
@@ -27,8 +26,4 @@ public class Schedule {
 
     @Column(name = "event_period", nullable = false, length = 10, columnDefinition = "char(10)")
     private String eventPeriod;
-
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "id_user_admin", referencedColumnName = "id_user", nullable = false)
-    private User adminUser;
 }
