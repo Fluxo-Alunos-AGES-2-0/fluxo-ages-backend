@@ -128,15 +128,15 @@ public class ReportService {
 
             fileStorageService.deleteFile(report.getUrlArchive());
 
-            report.setEditDate(LocalDateTime.now());
+            report.setEditDate(LocalDate.now());
         } else {
             report = new ReportArchive();
 
             report.setStudentUser(studentRef);
             report.setProject(projectRef);
             report.setType(reportType);
-            report.setCreateDate(LocalDateTime.now());
-            report.setEditDate(LocalDateTime.now());
+            report.setCreateDate(LocalDate.now());
+            report.setEditDate(LocalDate.now());
         }
 
         String fileUrl = fileStorageService.saveFile(file);
@@ -151,7 +151,7 @@ public class ReportService {
         return new ReportArchiveResponseDto(
                 report.getId(),
                 report.getUrlArchive(),
-                report.getCreateDate()
+                report.getCreateDate().atStartOfDay()
                         .atOffset(java.time.ZoneOffset.UTC)
                         .toInstant()
                         .toString()

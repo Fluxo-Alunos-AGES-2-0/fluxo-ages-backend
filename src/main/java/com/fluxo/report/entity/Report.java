@@ -26,10 +26,10 @@ public class Report {
     private ReportType type;
 
     @Column(name = "create_date", nullable = false)
-    private LocalDateTime createDate;
+    private LocalDate createDate;
 
     @Column(name = "edit_date", nullable = false)
-    private LocalDateTime editDate;
+    private LocalDate editDate;
 
     @Column(name = "grade", precision = 4, scale = 2)
     private BigDecimal grade;

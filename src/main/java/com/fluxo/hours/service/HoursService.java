@@ -57,8 +57,8 @@ public class HoursService {
         OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
         HoursReport hoursReport = new HoursReport();
         hoursReport.setType(HOURS_REPORT_TYPE);
-        hoursReport.setCreateDate(now.toLocalDateTime());
-        hoursReport.setEditDate(now.toLocalDateTime());
+        hoursReport.setCreateDate(now.toLocalDate());
+        hoursReport.setEditDate(now.toLocalDate());
         hoursReport.setStudentUser(authenticatedUser);
         hoursReport.setProject(project);
         hoursReport.setStatus(HoursReportStatus.APPROVED);
@@ -99,7 +99,7 @@ public class HoursService {
         hoursReport.setActivities(request.description());
         hoursReport.setExitTime(endTime);
         hoursReport.setTotalTimeSeconds(totalTimeSeconds);
-        hoursReport.setEditDate(LocalDateTime.now(ZoneOffset.UTC));
+        hoursReport.setEditDate(LocalDate.now(ZoneOffset.UTC));
 
         HoursReport savedHoursReport = hoursReportRepository.save(hoursReport);
 

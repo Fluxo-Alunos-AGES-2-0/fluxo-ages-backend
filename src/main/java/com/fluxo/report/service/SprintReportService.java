@@ -51,14 +51,14 @@ public class SprintReportService {
                 .orElseGet(() -> {
                     SprintReport newSprintReport = new SprintReport();
                     newSprintReport.setType(ReportType.SPRINT);
-                    newSprintReport.setCreateDate(LocalDateTime.now());
+                    newSprintReport.setCreateDate(LocalDate.now());
                     newSprintReport.setStudentUser(authenticatedUser);
                     newSprintReport.setProject(project);
                     newSprintReport.setSprint(sprintValue);
                     return newSprintReport;
                 });
 
-        sprintReport.setEditDate(LocalDateTime.now());
+        sprintReport.setEditDate(LocalDate.now());
         sprintReport.setPredictedActivity(request.predictedActivity());
         sprintReport.setActivityCompleted(request.activityCompleted());
         sprintReport.setProblemsEncountered(request.problemsEncountered());
@@ -83,7 +83,7 @@ public class SprintReportService {
         report.setProblemsEncountered(request.problemsEncountered().trim());
         report.setLearnedLessons(request.learnedLessons().trim());
         report.setNextSteps(request.nextSteps().trim());
-        report.setEditDate(LocalDateTime.now());
+        report.setEditDate(LocalDate.now());
 
         SprintReport updatedReport = sprintReportRepository.save(report);
 
@@ -95,7 +95,7 @@ public class SprintReportService {
                 updatedReport.getProblemsEncountered(),
                 updatedReport.getLearnedLessons(),
                 updatedReport.getNextSteps(),
-                updatedReport.getEditDate()
+                updatedReport.getEditDate().atStartOfDay()
         );
     }
 
