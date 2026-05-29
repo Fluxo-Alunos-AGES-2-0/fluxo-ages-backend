@@ -5,7 +5,9 @@ import com.fluxo.report.dto.FinalReportResponseDto;
 import com.fluxo.report.dto.ProgressReportResponseDto;
 import com.fluxo.report.dto.SprintReportRequestDto;
 import com.fluxo.report.dto.SprintReportResponseDto;
+import com.fluxo.report.exception.ReportTemplateNotFoundException;
 import com.fluxo.report.service.ReportService;
+import com.fluxo.report.service.ReportTemplateService;
 import com.fluxo.report.service.SprintReportService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -14,10 +16,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -40,6 +46,9 @@ class ReportControllerTest {
     private ReportService reportService;
 
     @Mock
+    private ReportTemplateService reportTemplateService;
+
+    @Mock
     private SprintReportService sprintReportService;
 
     @InjectMocks
@@ -49,7 +58,9 @@ class ReportControllerTest {
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(reportController).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(reportController)
+                .setControllerAdvice(new com.fluxo.infra.exception.GlobalExceptionHandler())
+                .build();
         objectMapper = new ObjectMapper();
     }
 
@@ -94,6 +105,36 @@ class ReportControllerTest {
                 .andDo(print());
 
         verify(reportService, times(1)).getFinalReports();
+    }
+
+    @Test
+    @DisplayName("GET /report/template returns DOCX template for download")
+    void testDownloadReportTemplateSuccess() throws Exception {
+        byte[] templateBytes = "template content".getBytes(StandardCharsets.UTF_8);
+        Resource templateResource = new ByteArrayResource(templateBytes);
+
+        when(reportTemplateService.loadReportTemplate()).thenReturn(templateResource);
+
+        mockMvc.perform(get("/report/template"))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, "application/vnd.openxmlformats-officedocument.wordprocessingml.document"))
+                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"report-template.docx\""))
+                .andExpect(content().bytes(templateBytes));
+
+        verify(reportTemplateService, times(1)).loadReportTemplate();
+    }
+
+    @Test
+    @DisplayName("GET /report/template returns HTTP 404 when template is missing")
+    void testDownloadReportTemplateNotFound() throws Exception {
+        when(reportTemplateService.loadReportTemplate())
+                .thenThrow(new ReportTemplateNotFoundException("Template de relatório não encontrado."));
+
+        mockMvc.perform(get("/report/template"))
+                .andExpect(status().isNotFound())
+                .andDo(print());
+
+        verify(reportTemplateService, times(1)).loadReportTemplate();
     }
 
     @Test

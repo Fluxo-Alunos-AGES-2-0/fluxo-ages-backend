@@ -7,6 +7,7 @@ import com.fluxo.report.dto.SprintReportRequestDto;
 import com.fluxo.report.dto.SprintReportResponseDto;
 import com.fluxo.report.dto.SprintReportListResponseDto;
 import com.fluxo.report.service.ReportService;
+import com.fluxo.report.service.ReportTemplateService;
 import com.fluxo.report.service.SprintReportService;
 import com.fluxo.user.entity.User;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,6 +16,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +35,7 @@ public class ReportController {
 
     private final ReportService reportService;
     private final SprintReportService sprintReportService;
+    private final ReportTemplateService reportTemplateService;
 
     @PostMapping(value = "/progress", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Upload de relatório de andamento", description = "Faz o upload do arquivo de relatório de andamento do aluno autenticado")
@@ -110,6 +114,22 @@ public class ReportController {
         return ResponseEntity.ok(reportService.getFinalReports());
     }
 
+    @GetMapping(value = "/template", produces = "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+    @Operation(summary = "Download do template de relatório", description = "Retorna o arquivo DOCX do template de relatório para download")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Template retornado com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Usuario nao autenticado"),
+            @ApiResponse(responseCode = "404", description = "Template nao encontrado")
+    })
+    public ResponseEntity<Resource> downloadReportTemplate() {
+        Resource templateFile = reportTemplateService.loadReportTemplate();
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.wordprocessingml.document"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"report-template.docx\"")
+                .body(templateFile);
+    }
+    
     @DeleteMapping("/{idReport}")
     @Operation(
             summary = "Excluir relatório",
