@@ -355,9 +355,14 @@ SELECT
     'Iniciar desenvolvimento dos relatórios.'
 FROM report r
 WHERE r.type = 'SPRINT'
-  AND r.create_date = DATE '2026-03-21';
-
--- Relatório de Sprint (2)
+  AND r.create_date = DATE '2026-03-21'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM sprint_report sr
+      WHERE sr.id_report = r.id_report
+  );
+  
+-- Relatório de dSprint (2)
   INSERT INTO report (
     type,
     create_date,
@@ -396,7 +401,14 @@ SELECT
     'Refinar edição, exclusão e histórico de projetos.'
 FROM report r
 WHERE r.type = 'SPRINT'
-  AND r.create_date = DATE '2026-03-28';
+  AND r.create_date = DATE '2026-03-28'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM sprint_report sr
+      WHERE sr.id_report = r.id_report
+  )
+  ON CONFLICT DO NOTHING;
+  
 
 -- Relatório de Andamento
 
@@ -432,7 +444,8 @@ SELECT
     TIMESTAMPTZ '2026-04-08 10:00:00+00'
 FROM report r
 WHERE r.type = 'RA'
-  AND r.create_date = DATE '2026-04-05';
+  AND r.create_date = DATE '2026-04-05'
+  ON CONFLICT DO NOTHING;
 
 -- Relatório Final
 
@@ -468,7 +481,8 @@ SELECT
     TIMESTAMPTZ '2026-06-25 10:00:00+00'
 FROM report r
 WHERE r.type = 'RF'
-  AND r.create_date = DATE '2026-06-20';
+  AND r.create_date = DATE '2026-06-20'
+  ON CONFLICT DO NOTHING;
 
 -- Horas do EduTrack (projeto antigo)
 
@@ -592,4 +606,5 @@ SELECT r.id_report,
 FROM report r JOIN "user" u ON u.id_user = r.id_user_student JOIN project p ON p.id_project = r.id_project
 WHERE u.email = 'aluno@fluxo.com' AND p.name = 'EduTrack'
   AND r.type = 'RF'
-  AND NOT EXISTS (SELECT 1 FROM report_review rr WHERE rr.id_report = r.id_report);
+  AND NOT EXISTS (SELECT 1 FROM report_review rr WHERE rr.id_report = r.id_report)
+  ON CONFLICT DO NOTHING;
