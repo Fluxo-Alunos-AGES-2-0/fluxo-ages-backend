@@ -21,8 +21,9 @@ public class Project {
     @Column(nullable = false)
     private String description;
 
-    @Column(nullable = false, length = 10, columnDefinition = "char(10)")
-    private String status;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private ProjectStatus status;
 
     @Column(nullable = false, length = 10, columnDefinition = "char(10)")
     private String period;

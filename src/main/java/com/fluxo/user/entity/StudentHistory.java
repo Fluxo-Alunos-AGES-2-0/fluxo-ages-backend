@@ -41,7 +41,7 @@ public class StudentHistory {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "student_status", nullable = false, length = 20)
-    private StudentStatus studentStatus = StudentStatus.EM_ANDAMENTO;
+    private StudentStatus studentStatus = StudentStatus.REGULAR;
 
     @Column(name = "ages_level", nullable = false)
     private Integer agesLevel = 1;

@@ -5,7 +5,6 @@ import com.fluxo.project.service.ProjectService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +28,6 @@ public class ProjectController {
             description = "Retorna todos os projetos em que o aluno autenticado já participou ou participa, " +
                     "incluindo projetos históricos, ordenados do período mais recente para o mais antigo."
     )
-    @SecurityRequirement(name = "Bearer Authentication")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Projetos do aluno retornados com sucesso"),
             @ApiResponse(responseCode = "401", description = "Usuario nao autenticado")

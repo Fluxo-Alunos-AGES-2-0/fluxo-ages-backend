@@ -3,9 +3,7 @@ package com.fluxo.project.service;
 import com.fluxo.project.dto.ProjectListResponseDto;
 import com.fluxo.project.entity.Project;
 import com.fluxo.user.entity.StudentHistory;
-import com.fluxo.user.entity.StudentProfile;
 import com.fluxo.user.repository.StudentHistoryRepository;
-import com.fluxo.user.repository.StudentProfileRepository;
 import com.fluxo.user.service.AuthenticatedUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,62 +15,67 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ProjectService {
 
-    private final StudentProfileRepository studentProfileRepository;
     private final StudentHistoryRepository studentHistoryRepository;
     private final AuthenticatedUserService authenticatedUserService;
 
     public List<ProjectListResponseDto> getMyProjects() {
         Integer userId = authenticatedUserService.getUserId();
 
-        List<StudentHistory> histories = studentHistoryRepository.findByStudentUserIdOrderByRecent(userId);
+        List<StudentHistory> userHistories = studentHistoryRepository.findByStudentUserIdOrderByRecent(userId);
 
-        Map<String, Integer> memberCountByProjectSemester = new HashMap<>();
-        for (StudentHistory history : histories) {
-            if (history.getProject() != null && history.getProject().getSemesterYear() != null) {
-                String key = history.getProject().getId() + "_" + history.getProject().getSemesterYear();
-                Set<Integer> studentsInProjectSemester = histories.stream()
-                        .filter(h -> h.getProject() != null 
-                            && h.getProject().getId().equals(history.getProject().getId())
-                            && h.getProject().getSemesterYear().equals(history.getProject().getSemesterYear()))
-                        .map(h -> h.getStudentUser().getId())
-                        .collect(Collectors.toSet());
-                memberCountByProjectSemester.put(key, studentsInProjectSemester.size());
+        // Deduplica projetos e mantém ordem dos mais recentes
+        Map<Integer, StudentHistory> uniqueProjectsMap = new LinkedHashMap<>();
+        for (StudentHistory history : userHistories) {
+            if (history.getProject() != null) {
+                uniqueProjectsMap.putIfAbsent(history.getProject().getId(), history);
             }
         }
 
-        Map<Integer, ProjectListResponseDto> dtoMap = new LinkedHashMap<>();
+        return uniqueProjectsMap.values().stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
 
-        for (StudentHistory history : histories) {
-            Project project = history.getProject();
-            if (project != null && !dtoMap.containsKey(project.getId())) {
-                List<String> technologies = project.getTechnologies() != null
-                        ? project.getTechnologies().stream()
-                            .map(tech -> tech.getName())
-                            .collect(Collectors.toList())
-                        : new ArrayList<>();
+    private ProjectListResponseDto convertToDto(StudentHistory studentHistory) {
+        Project project = studentHistory.getProject();
+        
+        Integer membersCount = countProjectMembers(project);
+        List<String> technologies = extractTechnologies(project);
 
-                String memberCountKey = project.getId() + "_" + project.getSemesterYear();
-                Integer membersCount = memberCountByProjectSemester.getOrDefault(memberCountKey, 0);
+        return new ProjectListResponseDto(
+                project.getId(),
+                project.getName(),
+                project.getSummary(),
+                project.getStatus().toString(),
+                studentHistory.getStudentStatus().toString(),
+                project.getPeriod(),
+                project.getSemesterYear(),
+                studentHistory.getAgesLevel(),
+                project.getGitLabLink(),
+                membersCount,
+                technologies,
+                project.getThumbnailUrl(),
+                project.getGroupPhotoUrl()
+        );
+    }
 
-                ProjectListResponseDto dto = new ProjectListResponseDto(
-                        project.getId(),
-                        project.getName(),
-                        project.getSummary(),
-                        project.getStatus(),
-                        history.getStudentStatus().toString(),
-                        project.getPeriod(),
-                        project.getSemesterYear(),
-                        history.getAgesLevel(),
-                        project.getGitLabLink(),
-                        membersCount,
-                        technologies,
-                        project.getThumbnailUrl(),
-                        project.getGroupPhotoUrl()
-                );
-                dtoMap.put(project.getId(), dto);
-            }
+    private Integer countProjectMembers(Project project) {
+        Set<Integer> memberIds = studentHistoryRepository
+                .findByProject(project)
+                .stream()
+                .map(history -> history.getStudentUser().getId())
+                .collect(Collectors.toSet());
+        
+        return memberIds.size();
+    }
+
+    private List<String> extractTechnologies(Project project) {
+        if (project.getTechnologies() == null || project.getTechnologies().isEmpty()) {
+            return new ArrayList<>();
         }
-
-        return new ArrayList<>(dtoMap.values());
+        
+        return project.getTechnologies().stream()
+                .map(tech -> tech.getName())
+                .collect(Collectors.toList());
     }
 }
