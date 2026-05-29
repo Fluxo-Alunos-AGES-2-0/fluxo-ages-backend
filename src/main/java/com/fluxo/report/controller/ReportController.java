@@ -130,3 +130,19 @@ public class ReportController {
                 .body(templateFile);
     }
 }
+    @DeleteMapping("/{idReport}")
+    @Operation(
+            summary = "Excluir relatório",
+            description = "Exclui um relatório do aluno autenticado, removendo também seus registros especializados"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Relatório excluído com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
+            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para excluir este relatório"),
+            @ApiResponse(responseCode = "404", description = "Relatório não encontrado")
+    })
+    public ResponseEntity<Void> deleteReport(@PathVariable Integer idReport) {
+        reportService.deleteReport(idReport);
+        return ResponseEntity.noContent().build();
+    }
+}
