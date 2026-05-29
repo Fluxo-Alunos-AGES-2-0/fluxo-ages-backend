@@ -18,4 +18,6 @@ public interface HoursReportRepository extends JpaRepository<HoursReport, Intege
     List<HoursReport> findByStudentUserId(Integer userId);
 
     List<HoursReport> findByStudentUserIdAndProjectIdAndExitTimeIsNotNullOrderByEntryTimeDesc(Integer userId, Integer projectId);
+
+    HoursReport findHoursReportById(Integer reportId);
 }
