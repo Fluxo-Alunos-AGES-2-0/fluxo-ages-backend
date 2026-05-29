@@ -309,3 +309,31 @@ FROM report r
 JOIN project p ON p.id_project = r.id_project
 WHERE p.name = 'FINAL' AND r.type = 'RF'
   AND NOT EXISTS (SELECT 1 FROM report_review rr WHERE rr.id_report = r.id_report);
+
+-- Seed schedule_event for development/testing (mocked public schedule events)
+INSERT INTO schedule_event (title, description, event_date, time_range, sprint, categories, dia_turno)
+SELECT
+    'Apresentação da AGES',
+    'Apresentação da AGES, projetos, orientadores e equipes.',
+    DATE '2025-04-06',
+    '19:15 - 22:30',
+    0,
+    'Evento,Orientação',
+    'LM_SEGQUA'
+WHERE NOT EXISTS (
+    SELECT 1 FROM schedule_event se WHERE se.title = 'Apresentação da AGES' AND se.event_date = DATE '2025-04-06'
+);
+
+INSERT INTO schedule_event (title, description, event_date, time_range, sprint, categories, dia_turno)
+SELECT
+    'Desenvolvimento da Sprint 1',
+    'Desenvolvimento da Sprint 1.',
+    DATE '2025-04-13',
+    '19:15 - 22:30',
+    1,
+    'Desenvolvimento',
+    'LM_SEGQUA'
+WHERE NOT EXISTS (
+    SELECT 1 FROM schedule_event se WHERE se.title = 'Desenvolvimento da Sprint 1' AND se.event_date = DATE '2025-04-13'
+);
+
