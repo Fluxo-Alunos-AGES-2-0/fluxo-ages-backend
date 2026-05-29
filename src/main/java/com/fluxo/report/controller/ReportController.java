@@ -129,7 +129,7 @@ public class ReportController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"report-template.docx\"")
                 .body(templateFile);
     }
-}
+    
     @DeleteMapping("/{idReport}")
     @Operation(
             summary = "Excluir relatório",
