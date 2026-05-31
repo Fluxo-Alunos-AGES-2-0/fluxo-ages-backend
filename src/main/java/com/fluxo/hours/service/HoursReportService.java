@@ -61,7 +61,7 @@ public class HoursReportService {
         report.setEntryTime(request.entryTime());
         report.setExitTime(request.exitTime());
         report.setActivities(request.activities().trim());
-        report.setEditDate(LocalDate.now());
+        report.setEditDate(OffsetDateTime.now());
         report.setStatus(HoursReportStatus.PENDING);
         report.setTotalTimeSeconds(totalTimeSeconds);
 
@@ -73,7 +73,7 @@ public class HoursReportService {
                 updatedHoursReport.getExitTime(),
                 report.getTotalTimeSeconds(),
                 updatedHoursReport.getActivities(),
-                report.getEditDate().atStartOfDay()
+                report.getEditDate()
         );
     }
 

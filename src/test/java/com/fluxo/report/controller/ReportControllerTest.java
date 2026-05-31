@@ -24,7 +24,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -68,13 +69,13 @@ class ReportControllerTest {
     @DisplayName("GET /report/me/final returns HTTP 200 with final reports")
     void testGetMyFinalReportsSuccess() throws Exception {
         FinalReportResponseDto report1 = new FinalReportResponseDto(
-                LocalDate.of(2024, 1, 15),
+                OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC),
                 "Project Alpha",
                 new BigDecimal("8.50"),
                 "Excellent work"
         );
         FinalReportResponseDto report2 = new FinalReportResponseDto(
-                LocalDate.of(2024, 2, 15),
+                OffsetDateTime.of(2024, 2, 15, 0, 0, 0, 0, ZoneOffset.UTC),
                 "Project Beta",
                 new BigDecimal("9.00"),
                 "Outstanding performance"
@@ -141,13 +142,13 @@ class ReportControllerTest {
     @DisplayName("GET /report/me/progress returns HTTP 200 with progress reports")
     void testGetMyProgressReportsSuccess() throws Exception {
         ProgressReportResponseDto report1 = new ProgressReportResponseDto(
-                LocalDate.of(2024, 1, 10),
+                OffsetDateTime.of(2024, 1, 10, 0, 0, 0, 0, ZoneOffset.UTC),
                 "Project Alpha",
                 new BigDecimal("7.50"),
                 "Good progress"
         );
         ProgressReportResponseDto report2 = new ProgressReportResponseDto(
-                LocalDate.of(2024, 2, 10),
+                OffsetDateTime.of(2024, 2, 10, 0, 0, 0, 0, ZoneOffset.UTC),
                 "Project Beta",
                 new BigDecimal("8.00"),
                 "Very good progress"

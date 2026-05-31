@@ -130,6 +130,7 @@ public class ReportController {
             @ApiResponse(responseCode = "401", description = "Usuario nao autenticado"),
             @ApiResponse(responseCode = "404", description = "Template nao encontrado")
     })
+    
     public ResponseEntity<Resource> downloadReportTemplate() {
         Resource templateFile = reportTemplateService.loadReportTemplate();
 

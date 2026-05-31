@@ -11,5 +11,5 @@ public record UpdateHoursReportResponseDto(
         OffsetDateTime exitTime,
         Integer totalTimeSeconds,
         String activities,
-        LocalDateTime editDate
+        OffsetDateTime editDate
 ) {}

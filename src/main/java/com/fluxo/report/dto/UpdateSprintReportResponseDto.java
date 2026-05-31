@@ -1,6 +1,6 @@
 package com.fluxo.report.dto;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 public record UpdateSprintReportResponseDto(
         Integer id,
@@ -10,5 +10,5 @@ public record UpdateSprintReportResponseDto(
         String problemsEncountered,
         String learnedLessons,
         String nextSteps,
-        LocalDateTime editDate
+        OffsetDateTime editDate
 ) {}
