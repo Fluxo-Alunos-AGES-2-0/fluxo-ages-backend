@@ -5,23 +5,18 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDate;
-
 @Entity
-@Table(name = "class")
+@Table(name = "technology")
 @Getter
 @Setter
 @NoArgsConstructor
-public class ClassGroup {
+public class Technology {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_class")
+    @Column(name = "id_technology")
     private Integer id;
 
-    @Column(name = "date", nullable = false)
-    private LocalDate date;
-
-    @Column(name = "date_time", length = 255)
-    private String dateTime;
+    @Column(nullable = false, unique = true)
+    private String name;
 }
