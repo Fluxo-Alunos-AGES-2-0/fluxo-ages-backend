@@ -13,8 +13,7 @@ import com.fluxo.user.service.AuthenticatedUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Comparator;
 import java.util.List;
 
@@ -51,14 +50,14 @@ public class SprintReportService {
                 .orElseGet(() -> {
                     SprintReport newSprintReport = new SprintReport();
                     newSprintReport.setType(ReportType.SPRINT);
-                    newSprintReport.setCreateDate(LocalDate.now());
+                    newSprintReport.setCreateDate(OffsetDateTime.now());
                     newSprintReport.setStudentUser(authenticatedUser);
                     newSprintReport.setProject(project);
                     newSprintReport.setSprint(sprintValue);
                     return newSprintReport;
                 });
 
-        sprintReport.setEditDate(LocalDate.now());
+        sprintReport.setEditDate(OffsetDateTime.now());
         sprintReport.setPredictedActivity(request.predictedActivity());
         sprintReport.setActivityCompleted(request.activityCompleted());
         sprintReport.setProblemsEncountered(request.problemsEncountered());
@@ -83,7 +82,7 @@ public class SprintReportService {
         report.setProblemsEncountered(request.problemsEncountered().trim());
         report.setLearnedLessons(request.learnedLessons().trim());
         report.setNextSteps(request.nextSteps().trim());
-        report.setEditDate(LocalDate.now());
+        report.setEditDate(OffsetDateTime.now());
 
         SprintReport updatedReport = sprintReportRepository.save(report);
 
@@ -95,7 +94,7 @@ public class SprintReportService {
                 updatedReport.getProblemsEncountered(),
                 updatedReport.getLearnedLessons(),
                 updatedReport.getNextSteps(),
-                updatedReport.getEditDate().atStartOfDay()
+                updatedReport.getEditDate()
         );
     }
 

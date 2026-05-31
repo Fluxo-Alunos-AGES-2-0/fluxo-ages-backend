@@ -658,12 +658,13 @@ WHERE student_user.email = 'aluno@fluxo.com'
       FROM sprint_report sr
       WHERE sr.id_report = seeded_report.id_report
   );
+
+INSERT INTO report_review (id_report, comment, correction_url, revision_date)
 SELECT r.id_report,
-    'Boa entrega final. O projeto atingiu os objetivos propostos com qualidade satisfatória.',
+    'Boa entrega final. O projeto atingiu os objetivos propostos com qualidade satisfatÃ³ria.',
     'https://drive.com/rf-edutrack',
     TIMESTAMPTZ '2025-12-02 10:00:00+00'
 FROM report r JOIN "user" u ON u.id_user = r.id_user_student JOIN project p ON p.id_project = r.id_project
 WHERE u.email = 'aluno@fluxo.com' AND p.name = 'EduTrack'
   AND r.type = 'RF'
-  AND NOT EXISTS (SELECT 1 FROM report_review rr WHERE rr.id_report = r.id_report)
-  ON CONFLICT DO NOTHING;
+  AND NOT EXISTS (SELECT 1 FROM report_review rr WHERE rr.id_report = r.id_report);

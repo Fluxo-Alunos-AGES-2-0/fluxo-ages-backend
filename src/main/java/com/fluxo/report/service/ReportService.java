@@ -26,7 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -137,15 +137,15 @@ public class ReportService {
 
             fileStorageService.deleteFile(report.getUrlArchive());
 
-            report.setEditDate(LocalDate.now());
+            report.setEditDate(OffsetDateTime.now());
         } else {
             report = new ReportArchive();
 
             report.setStudentUser(studentRef);
             report.setProject(projectRef);
             report.setType(reportType);
-            report.setCreateDate(LocalDate.now());
-            report.setEditDate(LocalDate.now());
+            report.setCreateDate(OffsetDateTime.now());
+            report.setEditDate(OffsetDateTime.now());
         }
 
         String fileUrl = fileStorageService.saveFile(file);
@@ -160,10 +160,7 @@ public class ReportService {
         return new ReportArchiveResponseDto(
                 report.getId(),
                 report.getUrlArchive(),
-                report.getCreateDate().atStartOfDay()
-                        .atOffset(java.time.ZoneOffset.UTC)
-                        .toInstant()
-                        .toString()
+                report.getCreateDate().toInstant().toString()
         );
     }
 
