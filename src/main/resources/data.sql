@@ -15,7 +15,7 @@ SELECT
     professor_user.id_user,
     'Projeto Exemplo',
     'Projeto seed para perfil do aluno',
-    'ATIVO',
+    'EM_ANDAMENTO',
     '2026.1',
     'Projeto vinculado ao perfil seeded',
     'https://gitlab.com/fluxo/projeto-exemplo'
@@ -32,7 +32,7 @@ SELECT
     professor_user.id_user,
     'Projeto Exemplo Secundario',
     'Projeto seed adicional para testar filtro de horas por projeto',
-    'ATIVO',
+    'EM_ANDAMENTO',
     '2026.1',
     'Projeto adicional vinculado ao aluno seeded',
     'https://gitlab.com/fluxo/projeto-exemplo-secundario'
