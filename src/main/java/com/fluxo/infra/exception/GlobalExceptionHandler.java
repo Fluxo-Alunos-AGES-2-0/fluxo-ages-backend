@@ -4,6 +4,8 @@ import com.fluxo.auth.exception.InvalidCredentialsException;
 import com.fluxo.hours.exception.ActiveHoursNotFoundException;
 import com.fluxo.hours.exception.HoursAlreadyOpenException;
 import com.fluxo.report.exception.InvalidReportFileException;
+import com.fluxo.report.exception.ReportNotFoundException;
+import com.fluxo.report.exception.StudentProjectNotFoundException;
 import com.fluxo.report.exception.ReportStorageException;
 import com.fluxo.report.exception.ReportTemplateNotFoundException;
 import com.fluxo.report.exception.StudentProjectNotFoundException;

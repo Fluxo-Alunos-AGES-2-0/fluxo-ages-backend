@@ -1,11 +1,6 @@
 package com.fluxo.report.controller;
 
-import com.fluxo.report.dto.FinalReportResponseDto;
-import com.fluxo.report.dto.ProgressReportResponseDto;
-import com.fluxo.report.dto.ReportArchiveResponseDto;
-import com.fluxo.report.dto.SprintReportRequestDto;
-import com.fluxo.report.dto.SprintReportResponseDto;
-import com.fluxo.report.dto.SprintReportListResponseDto;
+import com.fluxo.report.dto.*;
 import com.fluxo.report.service.ReportService;
 import com.fluxo.report.service.ReportTemplateService;
 import com.fluxo.report.service.SprintReportService;
@@ -95,8 +90,8 @@ public class ReportController {
     @GetMapping("/me/progress")
     @Operation(summary = "Obter relatorio de andamento", description = "Retorna o relatorio de andamento do aluno autenticado")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Relatorios de andamento obtidos com sucesso"),
-            @ApiResponse(responseCode = "401", description = "Usuario nao autenticado"),
+//            @ApiResponse(responseCode = "200", description = "Relatorios de andamento obtidos com sucesso"),
+//            @ApiResponse(responseCode = "401", description = "Usuario nao autenticado"),
             @ApiResponse(responseCode = "500", description = "Erro interno ao buscar relatorios de andamento")
     })
     public ResponseEntity<List<ProgressReportResponseDto>> getMyProgressReports() {
@@ -112,6 +107,20 @@ public class ReportController {
     })
     public ResponseEntity<List<FinalReportResponseDto>> getMyFinalReports() {
         return ResponseEntity.ok(reportService.getFinalReports());
+    }
+
+    @PutMapping("/sprint/{id}")
+    @Operation(summary = "Modificar o relatório de sprint", description = "Permitir modificar o relatório de sprint do aluno autenticado")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Relatório alterado com sucesso!"),
+            @ApiResponse(responseCode = "400", description = "Campos obrigatorios não podem ser vazio."),
+            @ApiResponse(responseCode = "401", description = "Usuario nao autenticado"),
+            @ApiResponse(responseCode = "404", description = "Relatorio não encontrado"),
+            @ApiResponse(responseCode = "500", description = "Erro interno ao autalizar relatorio de sprint")
+    })
+    public ResponseEntity<UpdateSprintReportResponseDto> updateSprintReport(@PathVariable Integer id, @Valid @RequestBody UpdateSprintReportRequestDto request) {
+        UpdateSprintReportResponseDto updatedSprintReport = sprintReportService.updateSprintReport(id, request);
+        return ResponseEntity.ok(updatedSprintReport);
     }
 
     @GetMapping(value = "/template", produces = "application/vnd.openxmlformats-officedocument.wordprocessingml.document")

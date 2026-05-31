@@ -599,6 +599,65 @@ WHERE u.email = 'aluno@fluxo.com'
   );
 
 INSERT INTO report_review (id_report, comment, correction_url, revision_date)
+SELECT r.id_report, 'Excelente trabalho', 'https://drive.com/final', '2026-06-12 10:00:00+00'
+FROM report r
+JOIN project p ON p.id_project = r.id_project
+WHERE p.name = 'FINAL' AND r.type = 'RF'
+  AND NOT EXISTS (SELECT 1 FROM report_review rr WHERE rr.id_report = r.id_report);
+
+-- Sprint Report para Projeto Exemplo
+
+INSERT INTO report (type, create_date, edit_date, grade, id_user_student, id_project)
+SELECT
+    'SPRINT',
+    DATE '2026-04-05',
+    DATE '2026-04-05',
+    NULL,
+    student_user.id_user,
+    project_seed.id_project
+FROM "user" student_user
+JOIN project project_seed ON project_seed.name = 'Projeto Exemplo'
+WHERE student_user.email = 'aluno@fluxo.com'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM report r
+      WHERE r.type = 'SPRINT'
+        AND r.id_user_student = student_user.id_user
+        AND r.id_project = project_seed.id_project
+        AND r.create_date = DATE '2026-04-05'
+  );
+
+INSERT INTO sprint_report (
+    id_report,
+    sprint,
+    activity_completed,
+    learned_lessons,
+    next_steps,
+    predicted_activity,
+    problems_encountered
+)
+SELECT
+    seeded_report.id_report,
+    '01',
+    'Implementação da autenticação e tela de login',
+    'Aprendizado sobre Spring Security e JWT',
+    'Finalizar cadastro de usuários',
+    'Desenvolvimento da funcionalidade de recuperação de senha',
+    'Dificuldades na configuração inicial do Spring Security'
+FROM report seeded_report
+JOIN "user" student_user
+    ON student_user.id_user = seeded_report.id_user_student
+JOIN project project_seed
+    ON project_seed.id_project = seeded_report.id_project
+WHERE student_user.email = 'aluno@fluxo.com'
+  AND project_seed.name = 'Projeto Exemplo'
+  AND seeded_report.type = 'SPRINT'
+  AND seeded_report.create_date = DATE '2026-04-05'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM sprint_report sr
+      WHERE sr.id_report = seeded_report.id_report
+  );
 SELECT r.id_report,
     'Boa entrega final. O projeto atingiu os objetivos propostos com qualidade satisfatória.',
     'https://drive.com/rf-edutrack',
