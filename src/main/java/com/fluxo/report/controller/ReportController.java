@@ -122,7 +122,7 @@ public class ReportController {
         UpdateSprintReportResponseDto updatedSprintReport = sprintReportService.updateSprintReport(id, request);
         return ResponseEntity.ok(updatedSprintReport);
     }
-}
+
     @GetMapping(value = "/template", produces = "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
     @Operation(summary = "Download do template de relatório", description = "Retorna o arquivo DOCX do template de relatório para download")
     @ApiResponses(value = {
