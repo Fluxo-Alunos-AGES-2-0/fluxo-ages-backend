@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict KSU7RvJfaqx9frFaqhzkU5qtnur9NBpZSNLlKkgOaa8rQEdIwW5ilDIags26cbS
+
 
 -- Dumped from database version 15.17
 -- Dumped by pg_dump version 15.17
@@ -859,5 +859,7 @@ ALTER TABLE ONLY public.student_historic
 -- PostgreSQL database dump complete
 --
 
-\unrestrict KSU7RvJfaqx9frFaqhzkU5qtnur9NBpZSNLlKkgOaa8rQEdIwW5ilDIags26cbS
+
+
+
 
