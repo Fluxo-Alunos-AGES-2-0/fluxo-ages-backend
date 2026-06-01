@@ -1,16 +1,17 @@
 package com.fluxo.hours.service;
 
+import com.fluxo.auth.service.EmailService;
 import com.fluxo.hours.dto.ActiveHoursResponseDto;
 import com.fluxo.hours.dto.HoursDTO;
 import com.fluxo.hours.dto.StartHoursResponseDto;
 import com.fluxo.hours.dto.StopHoursRequestDto;
 import com.fluxo.hours.dto.StopHoursResponseDto;
+import com.fluxo.hours.entity.HoursReport;
 import com.fluxo.hours.entity.HoursReportStatus;
 import com.fluxo.hours.exception.ActiveHoursNotFoundException;
 import com.fluxo.hours.exception.HoursAlreadyOpenException;
 import com.fluxo.hours.repository.HoursReportRepository;
 import com.fluxo.project.entity.Project;
-import com.fluxo.hours.entity.HoursReport;
 import com.fluxo.report.enums.ReportType;
 import com.fluxo.user.entity.StudentProfile;
 import com.fluxo.user.entity.User;
@@ -19,10 +20,8 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
+
+import java.time.*;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -36,6 +35,7 @@ public class HoursService {
 
     private final HoursReportRepository hoursReportRepository;
     private final AuthenticatedUserService authenticatedUserService;
+    private final EmailService emailService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -57,14 +57,24 @@ public class HoursService {
         OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
         HoursReport hoursReport = new HoursReport();
         hoursReport.setType(HOURS_REPORT_TYPE);
-        hoursReport.setCreateDate(now.toLocalDate());
-        hoursReport.setEditDate(now.toLocalDate());
+        hoursReport.setCreateDate(now);
+        hoursReport.setEditDate(now);
         hoursReport.setStudentUser(authenticatedUser);
         hoursReport.setProject(project);
-        hoursReport.setStatus(HoursReportStatus.PENDING);
+        hoursReport.setStatus(HoursReportStatus.APPROVED);
         hoursReport.setEntryTime(now);
 
         HoursReport savedHoursReport = hoursReportRepository.save(hoursReport);
+        
+        try {
+            emailService.sendHoursStartedEmail(
+                    authenticatedUser.getEmail(),
+                    authenticatedUser.getName(),
+                    savedHoursReport.getEntryTime().toInstant()
+            );
+        } catch (Exception e) {
+            System.err.println("Erro ao enviar email de início de horas para " + authenticatedUser.getEmail() + ": " + e.getMessage());
+        }
 
         return new StartHoursResponseDto(
                 savedHoursReport.getId(),
@@ -89,10 +99,21 @@ public class HoursService {
         hoursReport.setActivities(request.description());
         hoursReport.setExitTime(endTime);
         hoursReport.setTotalTimeSeconds(totalTimeSeconds);
-        hoursReport.setStatus(HoursReportStatus.APPROVED);
-        hoursReport.setEditDate(LocalDate.now(ZoneOffset.UTC));
+        hoursReport.setEditDate(OffsetDateTime.now(ZoneOffset.UTC));
 
         HoursReport savedHoursReport = hoursReportRepository.save(hoursReport);
+
+        try {
+            emailService.sendHoursStoppedEmail(
+                    authenticatedUser.getEmail(),
+                    authenticatedUser.getName(),
+                    savedHoursReport.getEntryTime().toInstant(),
+                    savedHoursReport.getExitTime().toInstant(),
+                    savedHoursReport.getTotalTimeSeconds()
+            );
+        } catch (Exception e) {
+            System.err.println("Erro ao enviar email de encerramento de horas para " + authenticatedUser.getEmail() + ": " + e.getMessage());
+        }
 
         return new StopHoursResponseDto(
                 savedHoursReport.getId(),
@@ -133,7 +154,6 @@ public class HoursService {
         return hoursReportRepository
                 .findByStudentUserId(userId)
                 .stream()
-                .filter(hoursReport -> hoursReport.getStatus() == HoursReportStatus.APPROVED)
                 .map(HoursReport::getTotalTimeSeconds)
                 .filter(Objects::nonNull)
                 .mapToLong(Integer::longValue)

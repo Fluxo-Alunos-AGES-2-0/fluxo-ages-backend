@@ -1,11 +1,10 @@
 package com.fluxo.report.service;
 
 import com.fluxo.project.entity.Project;
-import com.fluxo.report.dto.SprintReportListResponseDto;
-import com.fluxo.report.dto.SprintReportRequestDto;
-import com.fluxo.report.dto.SprintReportResponseDto;
+import com.fluxo.report.dto.*;
 import com.fluxo.report.entity.SprintReport;
 import com.fluxo.report.enums.ReportType;
+import com.fluxo.report.exception.ReportNotFoundException;
 import com.fluxo.report.repository.SprintReportRepository;
 import com.fluxo.user.entity.StudentProfile;
 import com.fluxo.user.entity.User;
@@ -14,7 +13,7 @@ import com.fluxo.user.service.AuthenticatedUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.Comparator;
 import java.util.List;
 
@@ -51,14 +50,14 @@ public class SprintReportService {
                 .orElseGet(() -> {
                     SprintReport newSprintReport = new SprintReport();
                     newSprintReport.setType(ReportType.SPRINT);
-                    newSprintReport.setCreateDate(LocalDate.now());
+                    newSprintReport.setCreateDate(OffsetDateTime.now());
                     newSprintReport.setStudentUser(authenticatedUser);
                     newSprintReport.setProject(project);
                     newSprintReport.setSprint(sprintValue);
                     return newSprintReport;
                 });
 
-        sprintReport.setEditDate(LocalDate.now());
+        sprintReport.setEditDate(OffsetDateTime.now());
         sprintReport.setPredictedActivity(request.predictedActivity());
         sprintReport.setActivityCompleted(request.activityCompleted());
         sprintReport.setProblemsEncountered(request.problemsEncountered());
@@ -68,6 +67,42 @@ public class SprintReportService {
         SprintReport savedSprintReport = sprintReportRepository.save(sprintReport);
 
         return toResponseDto(savedSprintReport);
+    }
+
+    public UpdateSprintReportResponseDto updateSprintReport(Integer id, UpdateSprintReportRequestDto request) {
+        User authenticatedUser = authenticatedUserService.getAuthenticatedUser();
+
+        SprintReport report = getSprintReportById(id);
+        if (!report.getStudentUser().getId().equals(authenticatedUser.getId())) {
+            throw new IllegalStateException("Você não tem permissão para editar este relatório.");
+        }
+
+        report.setPredictedActivity(request.predictedActivity().trim());
+        report.setActivityCompleted(request.activityCompleted().trim());
+        report.setProblemsEncountered(request.problemsEncountered().trim());
+        report.setLearnedLessons(request.learnedLessons().trim());
+        report.setNextSteps(request.nextSteps().trim());
+        report.setEditDate(OffsetDateTime.now());
+
+        SprintReport updatedReport = sprintReportRepository.save(report);
+
+        return new UpdateSprintReportResponseDto(
+                report.getId(),
+                report.getSprint(),
+                updatedReport.getPredictedActivity(),
+                updatedReport.getActivityCompleted(),
+                updatedReport.getProblemsEncountered(),
+                updatedReport.getLearnedLessons(),
+                updatedReport.getNextSteps(),
+                updatedReport.getEditDate()
+        );
+    }
+
+    public SprintReport getSprintReportById(Integer reportId) {
+        SprintReport sprintReport = sprintReportRepository.findSprintReportById(reportId);
+        if (sprintReport == null)
+            throw new ReportNotFoundException("Relatório de id '" + reportId + "' não foi encontrado");
+        return sprintReport;
     }
 
     public List<SprintReportListResponseDto> getMySprintReports(Integer projectId) {
@@ -120,7 +155,13 @@ public class SprintReportService {
                 "Sprint " + sprintReport.getSprint().trim(),
                 sprintReport.getStudentUser().getName(),
                 sprintReport.getCreateDate(),
-                sprintReport.getProject().getId()
+                sprintReport.getProject().getId(),
+                sprintReport.getPredictedActivity(),
+                sprintReport.getActivityCompleted(),
+                sprintReport.getProblemsEncountered(),
+                sprintReport.getLearnedLessons(),
+                sprintReport.getNextSteps(),
+                sprintReport.getGrade()
         );
     }
 }

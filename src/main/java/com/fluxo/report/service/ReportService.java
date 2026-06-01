@@ -1,5 +1,6 @@
 package com.fluxo.report.service;
 
+import com.fluxo.hours.repository.HoursReportRepository;
 import com.fluxo.project.entity.Project;
 import com.fluxo.project.repository.ProjectRepository;
 import com.fluxo.report.dto.FinalReportResponseDto;
@@ -11,8 +12,12 @@ import com.fluxo.report.entity.ReportReview;
 import com.fluxo.report.enums.ReportType;
 import com.fluxo.report.exception.InvalidReportFileException;
 import com.fluxo.report.exception.StudentProjectNotFoundException;
+import com.fluxo.report.exception.ReportAccessDeniedException;
+import com.fluxo.report.exception.ReportNotFoundException;
 import com.fluxo.report.repository.ReportArchiveRepository;
 import com.fluxo.report.repository.ReportRepository;
+import com.fluxo.report.repository.ReportReviewRepository;
+import com.fluxo.report.repository.SprintReportRepository;
 import com.fluxo.user.entity.User;
 import com.fluxo.user.repository.UserRepository;
 import com.fluxo.user.service.AuthenticatedUserService;
@@ -21,7 +26,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,6 +44,10 @@ public class ReportService {
     private final FileStorageService fileStorageService;
     private final AuthenticatedUserService authenticatedUserService;
     private final ReportRepository reportRepository;
+
+    private final HoursReportRepository hoursReportRepository;
+    private final SprintReportRepository sprintReportRepository;
+    private final ReportReviewRepository reportReviewRepository;
 
     @jakarta.persistence.PersistenceContext
     private jakarta.persistence.EntityManager entityManager;
@@ -127,15 +137,15 @@ public class ReportService {
 
             fileStorageService.deleteFile(report.getUrlArchive());
 
-            report.setEditDate(LocalDate.now());
+            report.setEditDate(OffsetDateTime.now());
         } else {
             report = new ReportArchive();
 
             report.setStudentUser(studentRef);
             report.setProject(projectRef);
             report.setType(reportType);
-            report.setCreateDate(LocalDate.now());
-            report.setEditDate(LocalDate.now());
+            report.setCreateDate(OffsetDateTime.now());
+            report.setEditDate(OffsetDateTime.now());
         }
 
         String fileUrl = fileStorageService.saveFile(file);
@@ -150,10 +160,7 @@ public class ReportService {
         return new ReportArchiveResponseDto(
                 report.getId(),
                 report.getUrlArchive(),
-                report.getCreateDate().atStartOfDay()
-                        .atOffset(java.time.ZoneOffset.UTC)
-                        .toInstant()
-                        .toString()
+                report.getCreateDate().toInstant().toString()
         );
     }
 
@@ -176,5 +183,35 @@ public class ReportService {
                 ReportType.RF,
                 (id, project) -> reportArchiveRepository.findByStudentUserIdAndProjectIdAndType(id, project.getId(), ReportType.RF)
         );
+    }
+
+    @Transactional
+    public void deleteReport(Integer idReport) {
+        User authenticatedUser = authenticatedUserService.getAuthenticatedUser();
+
+        Report report = reportRepository.findById(idReport)
+                .orElseThrow(() -> new ReportNotFoundException("Relatório não encontrado."));
+
+        if (!report.getStudentUser().getId().equals(authenticatedUser.getId())) {
+            throw new ReportAccessDeniedException("Usuário autenticado não possui permissão para excluir este relatório.");
+        }
+
+        if (hoursReportRepository.existsChildByReportId(idReport)) {
+            hoursReportRepository.deleteChildByReportId(idReport);
+        }
+
+        if (sprintReportRepository.existsChildByReportId(idReport)) {
+            sprintReportRepository.deleteChildByReportId(idReport);
+        }
+
+        if (reportReviewRepository.existsChildByReportId(idReport)) {
+            reportReviewRepository.deleteChildByReportId(idReport);
+        }
+
+        if (reportArchiveRepository.existsChildByReportId(idReport)) {
+            reportArchiveRepository.deleteChildByReportId(idReport);
+        }
+
+        reportRepository.deleteParentByReportId(idReport);
     }
 }

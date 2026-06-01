@@ -1,10 +1,10 @@
 package com.fluxo.report.dto;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.OffsetDateTime;
 
 public record FinalReportResponseDto(
-        LocalDate date,
+        OffsetDateTime date,
         String project,
         BigDecimal grade,
         String feedback
