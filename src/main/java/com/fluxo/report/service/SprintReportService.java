@@ -155,7 +155,13 @@ public class SprintReportService {
                 "Sprint " + sprintReport.getSprint().trim(),
                 sprintReport.getStudentUser().getName(),
                 sprintReport.getCreateDate(),
-                sprintReport.getProject().getId()
+                sprintReport.getProject().getId(),
+                sprintReport.getPredictedActivity(),
+                sprintReport.getActivityCompleted(),
+                sprintReport.getProblemsEncountered(),
+                sprintReport.getLearnedLessons(),
+                sprintReport.getNextSteps(),
+                sprintReport.getGrade()
         );
     }
 }
