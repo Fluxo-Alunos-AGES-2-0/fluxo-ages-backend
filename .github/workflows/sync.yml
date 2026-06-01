@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - dev
+  workflow_dispatch:
 
 jobs:
   sync:
@@ -24,4 +25,4 @@ jobs:
           git remote add gitlab "https://oauth2:${{ secrets.GITLAB_TOKEN }}@$GITLAB_REPO"
           
           # Envia a branch atual para o GitLab
-          git push gitlab ${{ github.ref_name }} --force
+          git push gitlab ${{ github.ref_name }}

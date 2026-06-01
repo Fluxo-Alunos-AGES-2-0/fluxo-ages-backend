@@ -12,6 +12,8 @@ import java.util.Optional;
 
 public interface SprintReportRepository extends JpaRepository<SprintReport, Integer> {
 
+    SprintReport findSprintReportById(Integer reportId);
+
     Optional<SprintReport> findByStudentUserIdAndProjectIdAndSprintAndType(
             Integer studentUserId,
             Integer projectId,

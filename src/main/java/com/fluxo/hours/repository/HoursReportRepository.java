@@ -22,6 +22,7 @@ public interface HoursReportRepository extends JpaRepository<HoursReport, Intege
 
     List<HoursReport> findByStudentUserIdAndProjectIdAndExitTimeIsNotNullOrderByEntryTimeDesc(Integer userId, Integer projectId);
 
+    HoursReport findHoursReportById(Integer reportId);
     @Modifying
     @Query(value = "DELETE FROM hours_report WHERE id_report = :idReport", nativeQuery = true)
     int deleteChildByReportId(@Param("idReport") Integer idReport);

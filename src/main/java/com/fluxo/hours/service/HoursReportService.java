@@ -1,38 +1,42 @@
 package com.fluxo.hours.service;
 
 import com.fluxo.hours.dto.HoursReportDto;
+import com.fluxo.hours.dto.UpdateHoursReportRequestDto;
+import com.fluxo.hours.dto.UpdateHoursReportResponseDto;
 import com.fluxo.hours.entity.HoursReport;
 import com.fluxo.hours.entity.HoursReportStatus;
 import com.fluxo.hours.repository.HoursReportRepository;
+import com.fluxo.report.exception.ReportNotFoundException;
 import com.fluxo.user.entity.User;
+import com.fluxo.user.service.AuthenticatedUserService;
 import com.fluxo.user.service.StudentService;
-import org.springframework.security.core.context.SecurityContextHolder;
+import lombok.AllArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.OffsetDateTime;
 import java.util.List;
 
 @Service
+@AllArgsConstructor
 public class HoursReportService {
 
-    private final HoursReportRepository repository;
+    private final HoursReportRepository hoursReportRepository;
     private final StudentService studentService;
-
-    public HoursReportService(HoursReportRepository repository, StudentService studentService) {
-        this.repository = repository;
-        this.studentService = studentService;
-    }
+    private final AuthenticatedUserService authenticatedUserService;
 
     public List<HoursReportDto> getMyHours(Integer idProject) {
-        User user = getAuthenticatedUser();
+        User user = authenticatedUserService.getAuthenticatedUser();
         Integer projectId = getAuthenticatedProjectId();
 
         if (projectId == null) {
             return List.of();
         }
 
-        return repository
+        return hoursReportRepository
                 .findByStudentUserIdAndProjectIdAndExitTimeIsNotNullOrderByEntryTimeDesc(
                         user.getId(),
                         idProject != null ? idProject : projectId)
@@ -41,9 +45,43 @@ public class HoursReportService {
                 .toList();
     }
 
-    private User getAuthenticatedUser() {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return (User) principal;
+    public UpdateHoursReportResponseDto updateHoursReport(Integer id, UpdateHoursReportRequestDto request) {
+        User authenticatedUser = authenticatedUserService.getAuthenticatedUser();
+
+        HoursReport report = getHoursReportById(id);
+
+        if (!report.getStudentUser().getId().equals(authenticatedUser.getId())) {
+            throw new AccessDeniedException("Você não tem permissão para editar este relatório.");
+        }
+
+        int totalTimeSeconds = (int) Duration
+                .between(request.entryTime().toInstant(), request.exitTime().toInstant())
+                .getSeconds();
+
+        report.setEntryTime(request.entryTime());
+        report.setExitTime(request.exitTime());
+        report.setActivities(request.activities().trim());
+        report.setEditDate(OffsetDateTime.now());
+        report.setStatus(HoursReportStatus.PENDING);
+        report.setTotalTimeSeconds(totalTimeSeconds);
+
+        HoursReport updatedHoursReport = hoursReportRepository.save(report);
+
+        return new UpdateHoursReportResponseDto(
+                report.getId(),
+                updatedHoursReport.getEntryTime(),
+                updatedHoursReport.getExitTime(),
+                report.getTotalTimeSeconds(),
+                updatedHoursReport.getActivities(),
+                report.getEditDate()
+        );
+    }
+
+    public HoursReport getHoursReportById(Integer reportId) {
+        HoursReport hoursReport = hoursReportRepository.findHoursReportById(reportId);
+        if (hoursReport == null)
+            throw new ReportNotFoundException("Relatório de id '" + reportId + "' não foi encontrado");
+        return hoursReport;
     }
 
     private Integer getAuthenticatedProjectId() {

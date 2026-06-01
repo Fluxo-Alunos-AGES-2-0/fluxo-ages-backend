@@ -15,17 +15,18 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/project")
+@RequestMapping("/projects")
 @RequiredArgsConstructor
 @Tag(name = "8. Projetos", description = "Endpoints para listagem de projetos do estudante")
 public class ProjectController {
 
     private final ProjectService projectService;
 
-    @GetMapping("/me")
+    @GetMapping
     @Operation(
             summary = "Listar projetos do aluno autenticado",
-            description = "Retorna o projeto atual e os projetos historicos do aluno autenticado, sem duplicatas."
+            description = "Retorna todos os projetos em que o aluno autenticado já participou ou participa, " +
+                    "incluindo projetos históricos, ordenados do período mais recente para o mais antigo."
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Projetos do aluno retornados com sucesso"),
