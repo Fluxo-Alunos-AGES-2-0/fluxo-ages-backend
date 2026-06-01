@@ -1,11 +1,7 @@
 package com.fluxo.hours.controller;
 
-import com.fluxo.hours.dto.ActiveHoursResponseDto;
-import com.fluxo.hours.dto.HoursDTO;
-import com.fluxo.hours.dto.HoursReportDto;
-import com.fluxo.hours.dto.StartHoursResponseDto;
-import com.fluxo.hours.dto.StopHoursRequestDto;
-import com.fluxo.hours.dto.StopHoursResponseDto;
+import com.fluxo.hours.dto.*;
+import com.fluxo.hours.entity.HoursReport;
 import com.fluxo.hours.service.HoursReportService;
 import com.fluxo.hours.service.HoursService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,12 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -93,5 +84,22 @@ public class HoursController {
     })
     public ResponseEntity<HoursDTO> getHourControl() {
         return ResponseEntity.ok(hoursService.getHourControl());
+    }
+
+    @PutMapping("/report/{id}")
+    @Operation(summary = "Modificar o relatório de horas", description = "Permitir modificar o relatório de horas do aluno autenticado")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Relatório alterado com sucesso!"),
+            @ApiResponse(responseCode = "403", description = "Usuario nao autenticado"),
+            @ApiResponse(responseCode = "404", description = "Relatorio não encontrado")
+    })
+    public ResponseEntity<UpdateHoursReportResponseDto> updateHoursReport(@PathVariable Integer id, @Valid @RequestBody UpdateHoursReportRequestDto request) {
+        UpdateHoursReportResponseDto updatedSprintReport = hoursReportService.updateHoursReport(id, request);
+        return ResponseEntity.ok(updatedSprintReport);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<HoursReport> getHourReport(@PathVariable Integer id){
+        return ResponseEntity.ok(hoursReportService.getHoursReportById(id));
     }
 }

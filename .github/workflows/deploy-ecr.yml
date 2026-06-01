@@ -1,0 +1,39 @@
+name: Deploy to ECR
+
+on:
+  workflow_run:
+    workflows: ["Fluxo Ages CI"] # Tem que ser o nome exato do arquivo 1
+    types:
+      - completed
+    branches:
+      - main # Só "escuta" se o CI rodou na branch main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # A linha abaixo é a barreira de segurança: só faz o deploy se os testes do CI deram "success"
+    if: ${{ github.event.workflow_run.conclusion == 'success' }} 
+
+    steps:
+    - name: Checkout do código
+      uses: actions/checkout@v4
+
+    - name: Configurar credenciais da AWS
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Login no Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Build e Push da imagem
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+        IMAGE_TAG: latest
+      run: |
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG

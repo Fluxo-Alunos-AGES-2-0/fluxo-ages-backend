@@ -4,16 +4,21 @@ import com.fluxo.auth.exception.InvalidCredentialsException;
 import com.fluxo.hours.exception.ActiveHoursNotFoundException;
 import com.fluxo.hours.exception.HoursAlreadyOpenException;
 import com.fluxo.report.exception.InvalidReportFileException;
+import com.fluxo.report.exception.ReportNotFoundException;
+import com.fluxo.report.exception.StudentProjectNotFoundException;
 import com.fluxo.report.exception.ReportStorageException;
 import com.fluxo.report.exception.ReportTemplateNotFoundException;
 import com.fluxo.report.exception.StudentProjectNotFoundException;
 import com.fluxo.report.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
@@ -84,5 +89,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleReportAccessDenied(ReportAccessDeniedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, Object>> handleAccessDeniedException(AccessDeniedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of("error", "Acesso negado. Você não tem permissão para acessar este relatório"));
     }
 }

@@ -7,7 +7,9 @@ import lombok.Setter;
 
 @Entity
 @Table(name = "technology")
-@Getter @Setter @NoArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor
 public class Technology {
 
     @Id

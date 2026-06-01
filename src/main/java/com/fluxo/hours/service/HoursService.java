@@ -20,10 +20,8 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
+
+import java.time.*;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -59,8 +57,8 @@ public class HoursService {
         OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
         HoursReport hoursReport = new HoursReport();
         hoursReport.setType(HOURS_REPORT_TYPE);
-        hoursReport.setCreateDate(now.toLocalDate());
-        hoursReport.setEditDate(now.toLocalDate());
+        hoursReport.setCreateDate(now);
+        hoursReport.setEditDate(now);
         hoursReport.setStudentUser(authenticatedUser);
         hoursReport.setProject(project);
         hoursReport.setStatus(HoursReportStatus.APPROVED);
@@ -101,7 +99,7 @@ public class HoursService {
         hoursReport.setActivities(request.description());
         hoursReport.setExitTime(endTime);
         hoursReport.setTotalTimeSeconds(totalTimeSeconds);
-        hoursReport.setEditDate(LocalDate.now(ZoneOffset.UTC));
+        hoursReport.setEditDate(OffsetDateTime.now(ZoneOffset.UTC));
 
         HoursReport savedHoursReport = hoursReportRepository.save(hoursReport);
 

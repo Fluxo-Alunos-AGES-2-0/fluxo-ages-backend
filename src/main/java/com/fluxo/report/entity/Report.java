@@ -7,7 +7,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.OffsetDateTime;
 
 @Entity
 @Table(name = "report")
@@ -24,11 +24,11 @@ public class Report {
     @Enumerated(EnumType.STRING)
     private ReportType type;
 
-    @Column(name = "create_date", nullable = false)
-    private LocalDate createDate;
+    @Column(name = "create_date", nullable = false, columnDefinition = "timestamp with time zone")
+    private OffsetDateTime createDate;
 
-    @Column(name = "edit_date", nullable = false)
-    private LocalDate editDate;
+    @Column(name = "edit_date", nullable = false, columnDefinition = "timestamp with time zone")
+    private OffsetDateTime editDate;
 
     @Column(name = "grade", precision = 4, scale = 2)
     private BigDecimal grade;

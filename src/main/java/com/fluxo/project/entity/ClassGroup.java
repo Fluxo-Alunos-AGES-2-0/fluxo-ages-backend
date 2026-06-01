@@ -21,4 +21,7 @@ public class ClassGroup {
 
     @Column(name = "date", nullable = false)
     private LocalDate date;
+
+    @Column(name = "date_time", length = 255)
+    private String dateTime;
 }
