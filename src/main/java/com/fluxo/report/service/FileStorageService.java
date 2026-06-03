@@ -18,9 +18,12 @@ public class FileStorageService {
     private final Path uploadDir;
     private final String baseUrl;
 
-    public FileStorageService(@Value("${app.storage.base-url:https://storage.example.com/reports/}") String baseUrl) {
+    public FileStorageService(
+            @Value("${app.storage.base-url:https://storage.example.com/reports/}") String baseUrl,
+            @Value("${app.upload.dir:uploads/reports/}") String uploadPath) {
+    
         this.baseUrl = baseUrl;
-        this.uploadDir = Paths.get("uploads/reports/").toAbsolutePath();
+        this.uploadDir = Paths.get(uploadPath).toAbsolutePath();
         initDirectory();
     }
 
