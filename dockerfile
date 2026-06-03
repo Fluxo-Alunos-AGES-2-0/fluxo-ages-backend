@@ -19,12 +19,14 @@ RUN ./mvnw clean package -DskipTests
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:0.8.4 /lambda-adapter /opt/extensions/lambda-adapter
+# Colocamos o adaptador diretamente na raiz para a AWS não o duplicar
+COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:0.8.4 /lambda-adapter /lambda-adapter
+
 COPY --from=builder /app/target/*.jar app.jar
 EXPOSE 8081
 
-# O Adaptador se torna o porteiro principal do contêiner
-ENTRYPOINT ["/opt/extensions/lambda-adapter"]
+# Agora o adaptador assume o controlo sozinho e em paz
+ENTRYPOINT ["/lambda-adapter"]
 
-# E ele executa o seu Spring Boot como processo filho
+# E executa o Spring Boot
 CMD ["java", "-Dserver.port=8081", "-jar", "app.jar"]
