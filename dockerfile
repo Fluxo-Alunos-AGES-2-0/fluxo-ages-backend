@@ -19,7 +19,7 @@ RUN ./mvnw clean package -DskipTests
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:0.8.4 /opt/extensions/ /opt/extensions/
+COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:0.8.4 /opt/extensions/lambda-adapter /opt/extensions/lambda-adapter
 COPY --from=builder /app/target/*.jar app.jar
 EXPOSE 8081
 ENTRYPOINT ["java", "-Dserver.port=8081", "-jar", "app.jar"]
