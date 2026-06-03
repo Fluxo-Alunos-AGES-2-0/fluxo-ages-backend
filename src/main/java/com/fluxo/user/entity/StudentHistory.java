@@ -25,13 +25,7 @@ public class StudentHistory {
     private BigDecimal grade;
 
     @Column(name = "semester_year", nullable = false)
-    private String semesterYear;
-
-    @Column(name = "ages_level", nullable = false)
-    private Integer agesLevel;
-
-    @Column(name = "student_status", nullable = false)
-    private String studentStatus;
+    private Short semesterYear;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "id_class", referencedColumnName = "id_class", nullable = false)
@@ -44,4 +38,11 @@ public class StudentHistory {
     @ManyToOne(optional = false)
     @JoinColumn(name = "id_project", referencedColumnName = "id_project", nullable = false)
     private Project project;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "student_status", nullable = false, length = 20)
+    private StudentStatus studentStatus = StudentStatus.REGULAR;
+
+    @Column(name = "ages_level", nullable = false)
+    private Integer agesLevel = 1;
 }

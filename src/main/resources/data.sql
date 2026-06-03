@@ -15,7 +15,7 @@ SELECT
     professor_user.id_user,
     'Projeto Exemplo',
     'Projeto seed para perfil do aluno',
-    'ATIVO',
+    'EM_ANDAMENTO',
     '2026.1',
     'Projeto vinculado ao perfil seeded',
     'https://gitlab.com/fluxo/projeto-exemplo'
@@ -32,7 +32,7 @@ SELECT
     professor_user.id_user,
     'Projeto Exemplo Secundario',
     'Projeto seed adicional para testar filtro de horas por projeto',
-    'ATIVO',
+    'EM_ANDAMENTO',
     '2026.1',
     'Projeto adicional vinculado ao aluno seeded',
     'https://gitlab.com/fluxo/projeto-exemplo-secundario'
@@ -289,7 +289,7 @@ SELECT '2025-08-01'
 WHERE NOT EXISTS (SELECT 1 FROM class WHERE date = '2025-08-01');
 
 INSERT INTO student_historic (id_user_student, id_project, semester_year, ages_level, student_status, grade, id_class)
-SELECT u.id_user, p.id_project, '2025.2', 2, 'CONCLUIDO', 9.0,
+SELECT u.id_user, p.id_project, 20252, 2, 'REGULAR', 9.0,
        (SELECT id_class FROM class ORDER BY id_class DESC LIMIT 1)
 FROM "user" u
 JOIN project p ON p.name = 'EduTrack'
@@ -301,8 +301,8 @@ WHERE u.email = 'aluno@fluxo.com'
       WHERE u2.email = 'aluno@fluxo.com' AND p2.name = 'EduTrack'
   );
 
-  INSERT INTO student_historic (id_user_student, id_project, semester_year, ages_level, student_status, grade, id_class)
-SELECT u.id_user, p.id_project, '2026.1', 2, 'CONCLUIDO', 8.0,
+INSERT INTO student_historic (id_user_student, id_project, semester_year, ages_level, student_status, grade, id_class)
+SELECT u.id_user, p.id_project, 20261, 2, 'REGULAR', 8.0,
        (SELECT id_class FROM class ORDER BY id_class DESC LIMIT 1)
 FROM "user" u
 JOIN project p ON p.name = 'Projeto Exemplo Secundario'
@@ -667,4 +667,5 @@ SELECT r.id_report,
 FROM report r JOIN "user" u ON u.id_user = r.id_user_student JOIN project p ON p.id_project = r.id_project
 WHERE u.email = 'aluno@fluxo.com' AND p.name = 'EduTrack'
   AND r.type = 'RF'
-  AND NOT EXISTS (SELECT 1 FROM report_review rr WHERE rr.id_report = r.id_report);
+  AND NOT EXISTS (SELECT 1 FROM report_review rr WHERE rr.id_report = r.id_report)
+  ON CONFLICT DO NOTHING;
