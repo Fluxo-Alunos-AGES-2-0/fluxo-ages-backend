@@ -1,6 +1,7 @@
 name: Deploy to ECR
 
 on:
+  workflow_dispatch:
   workflow_run:
     workflows: ["Fluxo Ages CI"] # Tem que ser o nome exato do arquivo 1
     types:
@@ -12,7 +13,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     # A linha abaixo é a barreira de segurança: só faz o deploy se os testes do CI deram "success"
-    if: ${{ github.event.workflow_run.conclusion == 'success' }} 
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }} 
 
     steps:
     - name: Checkout do código
