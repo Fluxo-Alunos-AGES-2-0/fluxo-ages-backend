@@ -8,6 +8,15 @@ import com.fluxo.user.service.AuthenticatedUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import com.fluxo.project.dto.ProjectDetailsResponseDto;
+import com.fluxo.project.dto.ProjectTeacherResponseDto;
+import com.fluxo.project.dto.ProjectTeamMemberResponseDto;
+import com.fluxo.project.exception.ProjectNotFoundException;
+import com.fluxo.user.entity.StudentProfile;
+import com.fluxo.user.entity.User;
+import com.fluxo.user.repository.StudentProfileRepository;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -16,6 +25,7 @@ import java.util.stream.Collectors;
 public class ProjectService {
 
     private final StudentHistoryRepository studentHistoryRepository;
+    private final StudentProfileRepository studentProfileRepository;
     private final AuthenticatedUserService authenticatedUserService;
 
     public List<ProjectListResponseDto> getMyProjects() {
@@ -34,6 +44,54 @@ public class ProjectService {
         return uniqueProjectsMap.values().stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public ProjectDetailsResponseDto getProjectDetails(Integer projectId) {
+        Integer userId = authenticatedUserService.getUserId();
+
+        Optional<StudentHistory> studentHistoryOpt =
+                studentHistoryRepository.findFirstByStudentUserIdAndProjectIdOrderBySemesterYearDesc(userId, projectId);
+
+        Optional<StudentProfile> studentProfileOpt =
+                studentProfileRepository.findByStudentUserIdAndTeamProjectId(userId, projectId);
+
+        if (studentHistoryOpt.isEmpty() && studentProfileOpt.isEmpty()) {
+            throw new ProjectNotFoundException("Projeto não encontrado.");
+        }
+
+        Project project = studentHistoryOpt
+                .map(StudentHistory::getProject)
+                .orElseGet(() -> studentProfileOpt.get().getTeam().getProject());
+
+        Integer agesLevel = studentHistoryOpt
+                .map(StudentHistory::getAgesLevel)
+                .orElseGet(() -> studentProfileOpt.get().getAgesPosition());
+
+        List<ProjectTeamMemberResponseDto> team = buildProjectTeam(project);
+        List<String> technologies = extractTechnologies(project);
+
+        User teacher = project.getTeacherUser();
+
+        return new ProjectDetailsResponseDto(
+                project.getId(),
+                project.getName(),
+                project.getDescription(),
+                project.getStatus().toString(),
+                project.getPeriod(),
+                project.getSemesterYear(),
+                agesLevel,
+                team.size(),
+                project.getGitLabLink(),
+                new ProjectTeacherResponseDto(
+                        teacher.getId(),
+                        teacher.getName()
+                ),
+                team,
+                technologies,
+                project.getThumbnailUrl(),
+                project.getGroupPhotoUrl()
+        );
     }
 
     private ProjectListResponseDto convertToDto(StudentHistory studentHistory) {
@@ -76,6 +134,48 @@ public class ProjectService {
         
         return project.getTechnologies().stream()
                 .map(tech -> tech.getName())
+                .collect(Collectors.toList());
+    }
+
+    private List<ProjectTeamMemberResponseDto> buildProjectTeam(Project project) {
+        Map<Integer, User> usersById = new LinkedHashMap<>();
+
+        studentHistoryRepository.findByProject(project)
+                .stream()
+                .map(StudentHistory::getStudentUser)
+                .forEach(user -> usersById.putIfAbsent(user.getId(), user));
+
+        studentProfileRepository.findByTeamProjectId(project.getId())
+                .stream()
+                .map(StudentProfile::getStudentUser)
+                .forEach(user -> usersById.putIfAbsent(user.getId(), user));
+
+        if (usersById.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        Map<Integer, StudentProfile> profilesByUserId = studentProfileRepository
+                .findByStudentUserIdIn(usersById.keySet())
+                .stream()
+                .collect(Collectors.toMap(
+                        profile -> profile.getStudentUser().getId(),
+                        profile -> profile,
+                        (first, second) -> first
+                ));
+
+        return usersById.values()
+                .stream()
+                .map(user -> {
+                    StudentProfile profile = profilesByUserId.get(user.getId());
+
+                    String avatarUrl = profile == null ? null : profile.getImageUrl();
+
+                    return new ProjectTeamMemberResponseDto(
+                            user.getId(),
+                            user.getName(),
+                            avatarUrl
+                    );
+                })
                 .collect(Collectors.toList());
     }
 }

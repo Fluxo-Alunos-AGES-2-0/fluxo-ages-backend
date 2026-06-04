@@ -2,9 +2,9 @@ package com.fluxo.user.repository;
 
 import com.fluxo.project.entity.Project;
 import com.fluxo.user.entity.StudentHistory;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-
 import java.util.List;
 
 public interface StudentHistoryRepository extends JpaRepository<StudentHistory, Integer> {
@@ -14,4 +14,9 @@ public interface StudentHistoryRepository extends JpaRepository<StudentHistory, 
     List<StudentHistory> findByStudentUserIdOrderByRecent(Integer userId);
     
     List<StudentHistory> findByProject(Project project);
+
+    Optional<StudentHistory> findFirstByStudentUserIdAndProjectIdOrderBySemesterYearDesc(
+            Integer userId,
+            Integer projectId
+    );
 }
