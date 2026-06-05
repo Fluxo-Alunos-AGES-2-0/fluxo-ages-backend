@@ -32,7 +32,7 @@ public class ReportController {
     private final SprintReportService sprintReportService;
     private final ReportTemplateService reportTemplateService;
 
-    @RequestMapping(value = "/progress", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/progress", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Upload de relatório de andamento", description = "Faz o upload do arquivo de relatório de andamento do aluno autenticado")
     public ResponseEntity<ReportArchiveResponseDto> uploadProgressReport(
             @RequestParam("file") MultipartFile file,
@@ -45,7 +45,7 @@ public class ReportController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @RequestMapping(value = "/final", method = {RequestMethod.POST, RequestMethod.PUT}, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/final", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Upload de relatório final", description = "Faz o upload do arquivo de relatório final do aluno autenticado")
     public ResponseEntity<ReportArchiveResponseDto> uploadFinalReport(
             @RequestParam("file") MultipartFile file,
