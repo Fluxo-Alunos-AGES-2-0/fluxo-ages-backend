@@ -6,5 +6,6 @@ public record HoursReportDto(
                 String endTime,
                 Integer sessionTimeSeconds,
                 String activities,
-                String status) {
+                String status,
+                String rejectionJustification) {
 }

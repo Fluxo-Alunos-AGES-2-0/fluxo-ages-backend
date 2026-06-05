@@ -2,6 +2,8 @@ package com.fluxo.project.controller;
 
 import com.fluxo.project.dto.ProjectListResponseDto;
 import com.fluxo.project.service.ProjectService;
+import com.fluxo.project.dto.ProjectDetailsResponseDto;
+import org.springframework.web.bind.annotation.PathVariable;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -34,5 +36,21 @@ public class ProjectController {
     })
     public ResponseEntity<List<ProjectListResponseDto>> getMyProjects() {
         return ResponseEntity.ok(projectService.getMyProjects());
+    }
+
+    @GetMapping("/{id}")
+    @Operation(
+            summary = "Buscar detalhes do projeto",
+            description = "Retorna os detalhes completos de um projeto vinculado ao aluno autenticado."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Detalhes do projeto retornados com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Usuario nao autenticado"),
+            @ApiResponse(responseCode = "404", description = "Projeto nao encontrado")
+    })
+    public ResponseEntity<ProjectDetailsResponseDto> getProjectDetails(
+            @PathVariable Integer id
+    ) {
+        return ResponseEntity.ok(projectService.getProjectDetails(id));
     }
 }
