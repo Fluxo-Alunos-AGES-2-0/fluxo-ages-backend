@@ -10,6 +10,7 @@ import com.fluxo.report.exception.ReportStorageException;
 import com.fluxo.report.exception.ReportTemplateNotFoundException;
 import com.fluxo.report.exception.StudentProjectNotFoundException;
 import com.fluxo.report.exception.*;
+import com.fluxo.project.exception.ProjectNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -81,6 +82,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ReportNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleReportNotFound(ReportNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ProjectNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleProjectNotFound(ProjectNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("error", ex.getMessage()));
     }
