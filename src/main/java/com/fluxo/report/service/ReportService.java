@@ -2,7 +2,6 @@ package com.fluxo.report.service;
 
 import com.fluxo.hours.repository.HoursReportRepository;
 import com.fluxo.project.entity.Project;
-import com.fluxo.project.repository.ProjectRepository;
 import com.fluxo.report.dto.FinalReportResponseDto;
 import com.fluxo.report.dto.ProgressReportResponseDto;
 import com.fluxo.report.dto.ReportArchiveResponseDto;
@@ -11,9 +10,9 @@ import com.fluxo.report.entity.ReportArchive;
 import com.fluxo.report.entity.ReportReview;
 import com.fluxo.report.enums.ReportType;
 import com.fluxo.report.exception.InvalidReportFileException;
-import com.fluxo.report.exception.StudentProjectNotFoundException;
 import com.fluxo.report.exception.ReportAccessDeniedException;
 import com.fluxo.report.exception.ReportNotFoundException;
+import com.fluxo.report.exception.StudentProjectNotFoundException;
 import com.fluxo.report.repository.ReportArchiveRepository;
 import com.fluxo.report.repository.ReportRepository;
 import com.fluxo.report.repository.ReportReviewRepository;
@@ -27,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.OffsetDateTime;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,16 +33,14 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ReportService {
 
-    private static final long MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
+    private static final long MAX_FILE_SIZE = 25 * 1024 * 1024;
     private static final String PDF_CONTENT_TYPE = "application/pdf";
 
     private final ReportArchiveRepository reportArchiveRepository;
     private final UserRepository userRepository;
-    private final ProjectRepository projectRepository;
     private final FileStorageService fileStorageService;
     private final AuthenticatedUserService authenticatedUserService;
     private final ReportRepository reportRepository;
-
     private final HoursReportRepository hoursReportRepository;
     private final SprintReportRepository sprintReportRepository;
     private final ReportReviewRepository reportReviewRepository;
@@ -63,8 +59,10 @@ public class ReportService {
                         report.getCreateDate(),
                         report.getProject().getName(),
                         report.getGrade(),
-                        report instanceof ReportArchive ra ? ra.getUrlArchive() : null,
-                        report instanceof ReportReview rr ? rr.getComment() : null
+                        report instanceof ReportArchive reportArchive
+                                ? fileStorageService.resolveFileUrl(reportArchive.getUrlArchive())
+                                : null,
+                        report instanceof ReportReview reportReview ? reportReview.getComment() : null
                 ))
                 .toList();
     }
@@ -80,46 +78,47 @@ public class ReportService {
                         report.getCreateDate(),
                         report.getProject().getName(),
                         report.getGrade(),
-                        report instanceof ReportArchive ra ? ra.getUrlArchive() : null,
-                        report instanceof ReportReview rr ? rr.getComment() : null
+                        report instanceof ReportArchive reportArchive
+                                ? fileStorageService.resolveFileUrl(reportArchive.getUrlArchive())
+                                : null,
+                        report instanceof ReportReview reportReview ? reportReview.getComment() : null
                 ))
                 .toList();
     }
-    
+
     private void validateFile(MultipartFile file) {
         if (file.isEmpty()) {
-            throw new InvalidReportFileException("Arquivo não pode estar vazio.");
+            throw new InvalidReportFileException("Arquivo nao pode estar vazio.");
         }
 
-        if (file.getContentType() == null || !file.getContentType().equals(PDF_CONTENT_TYPE)) {
-            throw new InvalidReportFileException("Formato inválido. Apenas arquivos PDF são aceitos.");
+        if (!PDF_CONTENT_TYPE.equals(file.getContentType())) {
+            throw new InvalidReportFileException("Formato invalido. Apenas arquivos PDF sao aceitos.");
         }
 
         if (file.getSize() > MAX_FILE_SIZE) {
-            throw new InvalidReportFileException("O arquivo não pode exceder 25MB.");
+            throw new InvalidReportFileException("O arquivo nao pode exceder 25MB.");
         }
     }
 
     private Project findCurrentProject(Integer userId) {
-        java.util.List<com.fluxo.user.entity.StudentProfile> result = entityManager.createQuery(
-                "SELECT sp FROM StudentProfile sp WHERE sp.studentUser.id = :userId",
-                com.fluxo.user.entity.StudentProfile.class)
+        List<com.fluxo.user.entity.StudentProfile> result = entityManager.createQuery(
+                        "SELECT sp FROM StudentProfile sp WHERE sp.studentUser.id = :userId",
+                        com.fluxo.user.entity.StudentProfile.class)
                 .setParameter("userId", userId)
                 .setMaxResults(1)
                 .getResultList();
 
-        if (result.isEmpty() || result.get(0).getTeam() == null || result.get(0).getTeam().getProject() == null) {
-            throw new StudentProjectNotFoundException("Projeto atual do aluno não encontrado.");
+        if (result.isEmpty() || result.getFirst().getTeam() == null || result.getFirst().getTeam().getProject() == null) {
+            throw new StudentProjectNotFoundException("Projeto atual do aluno nao encontrado.");
         }
 
-        return result.get(0).getTeam().getProject();
+        return result.getFirst().getTeam().getProject();
     }
 
     @FunctionalInterface
     private interface ExistingReportFinder {
         Optional<ReportArchive> find(Integer studentId, Project project);
     }
-
 
     private ReportArchiveResponseDto uploadReport(
             MultipartFile file,
@@ -131,20 +130,16 @@ public class ReportService {
 
         User studentRef = userRepository.getReferenceById(studentId);
         Project projectRef = findCurrentProject(studentId);
-
         Optional<ReportArchive> existingReportOpt = existingReportFinder.find(studentId, projectRef);
 
         ReportArchive report;
 
         if (existingReportOpt.isPresent()) {
             report = existingReportOpt.get();
-
             fileStorageService.deleteFile(report.getUrlArchive());
-
             report.setEditDate(OffsetDateTime.now());
         } else {
             report = new ReportArchive();
-
             report.setStudentUser(studentRef);
             report.setProject(projectRef);
             report.setType(reportType);
@@ -152,18 +147,16 @@ public class ReportService {
             report.setEditDate(OffsetDateTime.now());
         }
 
-        String fileUrl = fileStorageService.saveFile(file);
-        report.setUrlArchive(fileUrl);
+        report.setUrlArchive(fileStorageService.saveReportFile(file));
 
         ReportArchive savedReport = reportArchiveRepository.save(report);
-
         return buildResponse(savedReport);
     }
 
     private ReportArchiveResponseDto buildResponse(ReportArchive report) {
         return new ReportArchiveResponseDto(
                 report.getId(),
-                report.getUrlArchive(),
+                fileStorageService.resolveFileUrl(report.getUrlArchive()),
                 report.getCreateDate().toInstant().toString()
         );
     }
@@ -180,7 +173,6 @@ public class ReportService {
 
     @Transactional
     public ReportArchiveResponseDto uploadFinalReport(MultipartFile file, Integer studentId) {
-        Project projectRef = findCurrentProject(studentId);
         return uploadReport(
                 file,
                 studentId,
@@ -190,32 +182,36 @@ public class ReportService {
     }
 
     @Transactional
-    public void deleteReport(Integer idReport) {
+    public void deleteReport(Integer reportId) {
         User authenticatedUser = authenticatedUserService.getAuthenticatedUser();
 
-        Report report = reportRepository.findById(idReport)
-                .orElseThrow(() -> new ReportNotFoundException("Relatório não encontrado."));
+        Report report = reportRepository.findById(reportId)
+                .orElseThrow(() -> new ReportNotFoundException("Relatorio nao encontrado."));
 
         if (!report.getStudentUser().getId().equals(authenticatedUser.getId())) {
-            throw new ReportAccessDeniedException("Usuário autenticado não possui permissão para excluir este relatório.");
+            throw new ReportAccessDeniedException("Usuario autenticado nao possui permissao para excluir este relatorio.");
         }
 
-        if (hoursReportRepository.existsChildByReportId(idReport)) {
-            hoursReportRepository.deleteChildByReportId(idReport);
+        if (report instanceof ReportArchive reportArchive) {
+            fileStorageService.deleteFile(reportArchive.getUrlArchive());
         }
 
-        if (sprintReportRepository.existsChildByReportId(idReport)) {
-            sprintReportRepository.deleteChildByReportId(idReport);
+        if (hoursReportRepository.existsChildByReportId(reportId)) {
+            hoursReportRepository.deleteChildByReportId(reportId);
         }
 
-        if (reportReviewRepository.existsChildByReportId(idReport)) {
-            reportReviewRepository.deleteChildByReportId(idReport);
+        if (sprintReportRepository.existsChildByReportId(reportId)) {
+            sprintReportRepository.deleteChildByReportId(reportId);
         }
 
-        if (reportArchiveRepository.existsChildByReportId(idReport)) {
-            reportArchiveRepository.deleteChildByReportId(idReport);
+        if (reportReviewRepository.existsChildByReportId(reportId)) {
+            reportReviewRepository.deleteChildByReportId(reportId);
         }
 
-        reportRepository.deleteParentByReportId(idReport);
+        if (reportArchiveRepository.existsChildByReportId(reportId)) {
+            reportArchiveRepository.deleteChildByReportId(reportId);
+        }
+
+        reportRepository.deleteParentByReportId(reportId);
     }
 }
