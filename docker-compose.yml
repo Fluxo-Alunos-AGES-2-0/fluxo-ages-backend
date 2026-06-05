@@ -20,7 +20,7 @@ services:
     container_name: fluxo-api
     restart: always
     env_file: .env
-    entrypoint: ["java", "-Dserver.port=8081", "-jar", "app.jar"]
+    entrypoint: [ "java", "-Dserver.port=8081", "-jar", "app.jar" ]
     ports:
       - "${API_PORT}:8081" # Mapeia a porta do .env para a porta 8081 do container
     environment:
@@ -32,6 +32,8 @@ services:
       SERVER_PORT: 8081
     depends_on:
       - db # <--- Só sobe o app depois que o db estiver pronto
+    volumes:
+      - ./uploads:/app/uploads
 
 volumes:
   postgres_data:
