@@ -3,6 +3,7 @@ package com.fluxo.auth.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -34,6 +35,7 @@ public class EmailService {
         System.out.println("E-mail enviado com sucesso para: " + to);
     }
 
+    @Async
     public void sendHoursStartedEmail(String to, String studentName, Instant entryTime) {
         String subject = "Início de Registro de Horas";
         
@@ -56,7 +58,8 @@ public class EmailService {
 
         System.out.println("E-mail de início de horas enviado com sucesso para: " + to);
     }
-
+    
+    @Async
     public void sendHoursStoppedEmail(String to, String studentName, Instant entryTime, Instant exitTime, Integer totalTimeSeconds) {
         String subject = "Encerramento de Registro de Horas";
 

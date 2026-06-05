@@ -59,9 +59,11 @@ public class ReportService {
                 .stream()
                 .filter(report -> report.getType() == ReportType.RA)
                 .map(report -> new ProgressReportResponseDto(
+                        report.getId(),
                         report.getCreateDate(),
                         report.getProject().getName(),
                         report.getGrade(),
+                        report instanceof ReportArchive ra ? ra.getUrlArchive() : null,
                         report instanceof ReportReview rr ? rr.getComment() : null
                 ))
                 .toList();
@@ -74,9 +76,11 @@ public class ReportService {
                 .stream()
                 .filter(report -> report.getType() == ReportType.RF)
                 .map(report -> new FinalReportResponseDto(
+                        report.getId(),
                         report.getCreateDate(),
                         report.getProject().getName(),
                         report.getGrade(),
+                        report instanceof ReportArchive ra ? ra.getUrlArchive() : null,
                         report instanceof ReportReview rr ? rr.getComment() : null
                 ))
                 .toList();
@@ -170,7 +174,7 @@ public class ReportService {
                 file,
                 studentId,
                 ReportType.RA,
-                (id, project) -> reportArchiveRepository.findByStudentUserIdAndType(id, ReportType.RA)
+                (id, project) -> reportArchiveRepository.findByStudentUserIdAndProjectIdAndType(id, project.getId(), ReportType.RA)
         );
     }
 

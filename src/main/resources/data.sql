@@ -289,7 +289,7 @@ SELECT '2025-08-01'
 WHERE NOT EXISTS (SELECT 1 FROM class WHERE date = '2025-08-01');
 
 INSERT INTO student_historic (id_user_student, id_project, semester_year, ages_level, student_status, grade, id_class)
-SELECT u.id_user, p.id_project, 20252, 2, 'REGULAR', 9.0,
+SELECT u.id_user, p.id_project, 20252, 3, 'REGULAR', 9.0,
        (SELECT id_class FROM class ORDER BY id_class DESC LIMIT 1)
 FROM "user" u
 JOIN project p ON p.name = 'EduTrack'
@@ -301,18 +301,7 @@ WHERE u.email = 'aluno@fluxo.com'
       WHERE u2.email = 'aluno@fluxo.com' AND p2.name = 'EduTrack'
   );
 
-INSERT INTO student_historic (id_user_student, id_project, semester_year, ages_level, student_status, grade, id_class)
-SELECT u.id_user, p.id_project, 20261, 2, 'REGULAR', 8.0,
-       (SELECT id_class FROM class ORDER BY id_class DESC LIMIT 1)
-FROM "user" u
-JOIN project p ON p.name = 'Projeto Exemplo Secundario'
-WHERE u.email = 'aluno@fluxo.com'
-  AND NOT EXISTS (
-      SELECT 1 FROM student_historic sh
-      JOIN "user" u2 ON u2.id_user = sh.id_user_student
-      JOIN project p2 ON p2.id_project = sh.id_project
-      WHERE u2.email = 'aluno@fluxo.com' AND p2.name = 'Projeto Exemplo Secundario'
-  );
+-- (Projeto Exemplo Secundario removido do historico do aluno: mapa limitado a 4 projetos, um por nivel AGES)
 
 
 -- Relatório de Sprint (1)
@@ -410,79 +399,8 @@ WHERE r.type = 'SPRINT'
   ON CONFLICT DO NOTHING;
   
 
--- Relatório de Andamento
-
-INSERT INTO report (
-    type,
-    create_date,
-    edit_date,
-    grade,
-    id_user_student,
-    id_project
-)
-SELECT
-    'RA',
-    DATE '2026-04-05',
-    DATE '2026-04-05',
-    8.5,
-    u.id_user,
-    p.id_project
-FROM "user" u
-JOIN project p ON p.name = 'Projeto Exemplo'
-WHERE u.email = 'aluno@fluxo.com';
-
-INSERT INTO report_review (
-    id_report,
-    comment,
-    correction_url,
-    revision_date
-)
-SELECT
-    r.id_report,
-    'Bom progresso. A estrutura dos relatórios está consistente, porém ainda faltam refinamentos na edição e exclusão.',
-    'https://drive.com/ra-projeto-exemplo',
-    TIMESTAMPTZ '2026-04-08 10:00:00+00'
-FROM report r
-WHERE r.type = 'RA'
-  AND r.create_date = DATE '2026-04-05'
-  ON CONFLICT DO NOTHING;
-
--- Relatório Final
-
-INSERT INTO report (
-    type,
-    create_date,
-    edit_date,
-    grade,
-    id_user_student,
-    id_project
-)
-SELECT
-    'RF',
-    DATE '2026-06-20',
-    DATE '2026-06-20',
-    9.3,
-    u.id_user,
-    p.id_project
-FROM "user" u
-JOIN project p ON p.name = 'Projeto Exemplo'
-WHERE u.email = 'aluno@fluxo.com';
-
-INSERT INTO report_review (
-    id_report,
-    comment,
-    correction_url,
-    revision_date
-)
-SELECT
-    r.id_report,
-    'Excelente evolução durante o semestre. Entregas consistentes e boa participação no projeto.',
-    'https://drive.com/rf-projeto-exemplo',
-    TIMESTAMPTZ '2026-06-25 10:00:00+00'
-FROM report r
-WHERE r.type = 'RF'
-  AND r.create_date = DATE '2026-06-20'
-  ON CONFLICT DO NOTHING;
+-- Relatorios de Andamento (RA) e Final (RF) do projeto atual nao sao seedados:
+-- devem vir do upload do aluno (que substitui o anterior em vez de duplicar).
 
 -- Horas do EduTrack (projeto antigo)
 
@@ -669,3 +587,127 @@ WHERE u.email = 'aluno@fluxo.com' AND p.name = 'EduTrack'
   AND r.type = 'RF'
   AND NOT EXISTS (SELECT 1 FROM report_review rr WHERE rr.id_report = r.id_report)
   ON CONFLICT DO NOTHING;
+
+
+-- =====================================================================
+-- SEED AMPLIADO: Mapa de Projetos (mais projetos, equipes e tecnologias)
+-- =====================================================================
+
+-- Estudantes adicionais (compoem as equipes dos projetos)
+INSERT INTO "user" (name, enrollment_number, email, password, type)
+VALUES
+    ('Lucas Fernandes', '2300000001', 'lucas.fernandes@fluxo.com', '$2a$10$DKDlXaWzCbEbIP9hPxvLyeipgAQE3nRz5vsNrVDrNt0Dbf1OLLSL6', 'STUDENT'),
+    ('Mariana Costa', '2300000002', 'mariana.costa@fluxo.com', '$2a$10$DKDlXaWzCbEbIP9hPxvLyeipgAQE3nRz5vsNrVDrNt0Dbf1OLLSL6', 'STUDENT'),
+    ('Pedro Henrique', '2300000003', 'pedro.henrique@fluxo.com', '$2a$10$DKDlXaWzCbEbIP9hPxvLyeipgAQE3nRz5vsNrVDrNt0Dbf1OLLSL6', 'STUDENT'),
+    ('Camila Rocha', '2300000004', 'camila.rocha@fluxo.com', '$2a$10$DKDlXaWzCbEbIP9hPxvLyeipgAQE3nRz5vsNrVDrNt0Dbf1OLLSL6', 'STUDENT'),
+    ('Rafael Martins', '2300000005', 'rafael.martins@fluxo.com', '$2a$10$DKDlXaWzCbEbIP9hPxvLyeipgAQE3nRz5vsNrVDrNt0Dbf1OLLSL6', 'STUDENT'),
+    ('Ana Beatriz', '2300000006', 'ana.beatriz@fluxo.com', '$2a$10$DKDlXaWzCbEbIP9hPxvLyeipgAQE3nRz5vsNrVDrNt0Dbf1OLLSL6', 'STUDENT'),
+    ('Gabriel Souza', '2300000007', 'gabriel.souza@fluxo.com', '$2a$10$DKDlXaWzCbEbIP9hPxvLyeipgAQE3nRz5vsNrVDrNt0Dbf1OLLSL6', 'STUDENT'),
+    ('Juliana Alves', '2300000008', 'juliana.alves@fluxo.com', '$2a$10$DKDlXaWzCbEbIP9hPxvLyeipgAQE3nRz5vsNrVDrNt0Dbf1OLLSL6', 'STUDENT')
+ON CONFLICT (enrollment_number) DO NOTHING;
+
+-- Catalogo de tecnologias
+INSERT INTO technology (name)
+VALUES
+    ('React'), ('TypeScript'), ('Tailwind'), ('Spring Boot'), ('Node.js'),
+    ('PostgreSQL'), ('Vue.js'), ('Angular'), ('Oracle'), ('Next.js'),
+    ('NestJS'), ('Redis'), ('React Native'), ('Express'), ('MongoDB'),
+    ('Flutter'), ('Django'), ('MySQL'), ('Docker')
+ON CONFLICT (name) DO NOTHING;
+
+-- Novos projetos (variando status, periodo e semestre)
+INSERT INTO project (id_user_teacher, name, description, summary, status, period, semester_year, observation, git_lab_link, thumbnail_url)
+SELECT
+    prof.id_user, v.name, v.description, v.summary, v.status, v.period, v.semester_year,
+    'Seed ampliado para o mapa de projetos', v.git_lab_link, v.thumbnail_url
+FROM "user" prof
+JOIN (VALUES
+    ('ClinAgenda',
+     'Sistema de agendamento online para clinicas e consultorios, com gestao de pacientes, agenda medica e notificacoes automaticas por e-mail e SMS.',
+     'Agendamento online para clinicas com gestao de pacientes e notificacoes automaticas.',
+     'CONCLUIDO', '2LM4LM', '2024/2', 'https://gitlab.com/fluxo/clinagenda',
+     'https://images.unsplash.com/photo-1576091160550-2173dba999ef?q=80&w=1200&auto=format&fit=crop'),
+    ('StockWise',
+     'Gerenciador de estoque inteligente para pequenas e medias empresas, com controle de produtos, alertas de reposicao e integracao com notas fiscais.',
+     'Gestao de estoque com alertas de reposicao e integracao com notas fiscais.',
+     'CONCLUIDO', '2JK4JK', '2024/1', 'https://gitlab.com/fluxo/stockwise',
+     'https://images.unsplash.com/photo-1553413077-190dd305871c?q=80&w=1200&auto=format&fit=crop'),
+    ('AgendaMed',
+     'Aplicativo de telemedicina com agendamento de consultas, prontuario eletronico e videochamadas integradas entre pacientes e profissionais de saude.',
+     'Telemedicina com agendamento, prontuario eletronico e videochamadas.',
+     'CONCLUIDO', '3MN5MN', '2025/1', 'https://gitlab.com/fluxo/agendamed',
+     'https://images.unsplash.com/photo-1551076805-e1869033e561?q=80&w=1200&auto=format&fit=crop')
+) AS v(name, description, summary, status, period, semester_year, git_lab_link, thumbnail_url) ON TRUE
+WHERE prof.email = 'professor@fluxo.com'
+  AND NOT EXISTS (SELECT 1 FROM project p WHERE p.name = v.name);
+
+-- Completa thumbnail / semestre / resumo dos projetos ja existentes
+UPDATE project SET
+    summary = 'Plataforma web que centraliza a gestao academica e de portfolio dos alunos da AGES.',
+    semester_year = '2026/1',
+    thumbnail_url = 'https://images.unsplash.com/photo-1556761175-b413da4baf72?q=80&w=1200&auto=format&fit=crop'
+WHERE name = 'Projeto Exemplo';
+
+UPDATE project SET
+    summary = 'Modulo complementar de testes e validacao da plataforma Fluxo AGES.',
+    semester_year = '2026/1',
+    thumbnail_url = 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=1200&auto=format&fit=crop'
+WHERE name = 'Projeto Exemplo Secundario';
+
+UPDATE project SET
+    summary = 'Ferramenta de acompanhamento de aprendizagem com dashboards de desempenho e relatorios pedagogicos.',
+    semester_year = '2025/2',
+    thumbnail_url = 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1200&auto=format&fit=crop'
+WHERE name = 'EduTrack';
+
+-- Vinculo projeto <-> tecnologias
+INSERT INTO project_technology (id_project, id_technology)
+SELECT p.id_project, t.id_technology
+FROM (VALUES
+    ('ClinAgenda','Vue.js'), ('ClinAgenda','Node.js'), ('ClinAgenda','PostgreSQL'),
+    ('AgendaMed','React Native'), ('AgendaMed','Express'), ('AgendaMed','MongoDB'),
+    ('Projeto Exemplo','React'), ('Projeto Exemplo','TypeScript'), ('Projeto Exemplo','Spring Boot'), ('Projeto Exemplo','PostgreSQL'),
+    ('EduTrack','React'), ('EduTrack','Django'), ('EduTrack','MySQL')
+) AS m(pname, tname)
+JOIN project p ON p.name = m.pname
+JOIN technology t ON t.name = m.tname
+WHERE NOT EXISTS (
+    SELECT 1 FROM project_technology pt
+    WHERE pt.id_project = p.id_project AND pt.id_technology = t.id_technology
+);
+
+-- Equipes (student_historic): o aluno + colegas em cada projeto.
+-- E o que faz o projeto aparecer no mapa e popula a contagem/lista de membros.
+INSERT INTO student_historic (id_user_student, id_project, semester_year, ages_level, student_status, grade, id_class)
+SELECT u.id_user, p.id_project, m.semester_year::smallint, m.ages_level, 'REGULAR', m.grade,
+       (SELECT id_class FROM class ORDER BY id_class DESC LIMIT 1)
+FROM (VALUES
+    ('ClinAgenda','aluno@fluxo.com',20242,1,8.5),
+    ('ClinAgenda','lucas.fernandes@fluxo.com',20242,1,8.0),
+    ('ClinAgenda','mariana.costa@fluxo.com',20242,1,7.8),
+    ('ClinAgenda','pedro.henrique@fluxo.com',20242,2,8.2),
+    ('ClinAgenda','camila.rocha@fluxo.com',20242,2,9.0),
+    ('ClinAgenda','rafael.martins@fluxo.com',20242,3,8.7),
+    ('AgendaMed','aluno@fluxo.com',20251,2,8.6),
+    ('AgendaMed','lucas.fernandes@fluxo.com',20251,2,8.1),
+    ('AgendaMed','mariana.costa@fluxo.com',20251,2,7.9),
+    ('AgendaMed','pedro.henrique@fluxo.com',20251,3,8.4),
+    ('AgendaMed','camila.rocha@fluxo.com',20251,3,9.1),
+    ('AgendaMed','rafael.martins@fluxo.com',20251,3,8.8),
+    ('AgendaMed','ana.beatriz@fluxo.com',20251,1,7.7),
+    ('EduTrack','camila.rocha@fluxo.com',20252,3,8.4),
+    ('EduTrack','rafael.martins@fluxo.com',20252,3,8.6),
+    ('EduTrack','ana.beatriz@fluxo.com',20252,2,7.9),
+    ('EduTrack','gabriel.souza@fluxo.com',20252,2,8.0),
+    ('Projeto Exemplo','aluno@fluxo.com',20261,4,9.0),
+    ('Projeto Exemplo','lucas.fernandes@fluxo.com',20261,4,8.0),
+    ('Projeto Exemplo','mariana.costa@fluxo.com',20261,3,7.8),
+    ('Projeto Exemplo','pedro.henrique@fluxo.com',20261,3,7.6),
+    ('Projeto Exemplo','juliana.alves@fluxo.com',20261,2,8.2)
+) AS m(pname, email, semester_year, ages_level, grade)
+JOIN project p ON p.name = m.pname
+JOIN "user" u ON u.email = m.email
+WHERE NOT EXISTS (
+    SELECT 1 FROM student_historic sh
+    WHERE sh.id_user_student = u.id_user AND sh.id_project = p.id_project
+);

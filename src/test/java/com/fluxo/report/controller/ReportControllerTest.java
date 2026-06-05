@@ -69,15 +69,19 @@ class ReportControllerTest {
     @DisplayName("GET /report/me/final returns HTTP 200 with final reports")
     void testGetMyFinalReportsSuccess() throws Exception {
         FinalReportResponseDto report1 = new FinalReportResponseDto(
+                1,
                 OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC),
                 "Project Alpha",
                 new BigDecimal("8.50"),
+                "http://example.com/file1.pdf",
                 "Excellent work"
         );
         FinalReportResponseDto report2 = new FinalReportResponseDto(
+                2,
                 OffsetDateTime.of(2024, 2, 15, 0, 0, 0, 0, ZoneOffset.UTC),
                 "Project Beta",
                 new BigDecimal("9.00"),
+                "http://example.com/file2.pdf",
                 "Outstanding performance"
         );
 
@@ -142,15 +146,19 @@ class ReportControllerTest {
     @DisplayName("GET /report/me/progress returns HTTP 200 with progress reports")
     void testGetMyProgressReportsSuccess() throws Exception {
         ProgressReportResponseDto report1 = new ProgressReportResponseDto(
+                1,
                 OffsetDateTime.of(2024, 1, 10, 0, 0, 0, 0, ZoneOffset.UTC),
                 "Project Alpha",
                 new BigDecimal("7.50"),
+                "http://example.com/prog1.pdf",
                 "Good progress"
         );
         ProgressReportResponseDto report2 = new ProgressReportResponseDto(
+                2,
                 OffsetDateTime.of(2024, 2, 10, 0, 0, 0, 0, ZoneOffset.UTC),
                 "Project Beta",
                 new BigDecimal("8.00"),
+                "http://example.com/prog2.pdf",
                 "Very good progress"
         );
 
