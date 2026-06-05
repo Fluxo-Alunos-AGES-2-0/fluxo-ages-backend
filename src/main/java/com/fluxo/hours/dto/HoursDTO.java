@@ -10,4 +10,5 @@ public class HoursDTO {
     private long remainingSeconds;
     private long totalSeconds;
     private double percentual;
+    private long owingSeconds;
 }
