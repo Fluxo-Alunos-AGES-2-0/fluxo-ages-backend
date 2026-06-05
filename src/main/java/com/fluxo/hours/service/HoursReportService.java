@@ -104,7 +104,8 @@ public class HoursReportService {
                         : null,
                 report.getTotalTimeSeconds(),
                 report.getActivities(),
-                resolveHoursReportStatus(report).name());
+                resolveHoursReportStatus(report).name(),
+                report.getRejectionJustification());
     }
 
     private HoursReportStatus resolveHoursReportStatus(HoursReport report) {

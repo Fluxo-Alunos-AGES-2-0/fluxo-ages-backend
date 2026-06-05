@@ -638,7 +638,7 @@ INSERT INTO sprint_report (
 )
 SELECT
     seeded_report.id_report,
-    '01',
+    '3',
     'Implementação da autenticação e tela de login',
     'Aprendizado sobre Spring Security e JWT',
     'Finalizar cadastro de usuários',

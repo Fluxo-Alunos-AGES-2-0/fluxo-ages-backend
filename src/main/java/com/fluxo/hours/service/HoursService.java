@@ -137,8 +137,9 @@ public class HoursService {
 
     public HoursDTO getHourControl() {
         User authenticatedUser = authenticatedUserService.getAuthenticatedUser();
+        Project currentProject = findCurrentProject(authenticatedUser.getId());
 
-        long totalCompletedSeconds = getTotalSeconds(authenticatedUser.getId());
+        long totalCompletedSeconds = getTotalApprovedSeconds(authenticatedUser.getId(), currentProject.getId());
         long remainingSeconds = Math.max(0, TOTAL_SECONDS - totalCompletedSeconds);
         double percentual = (totalCompletedSeconds * 100.0) / TOTAL_SECONDS;
 
@@ -147,7 +148,18 @@ public class HoursService {
                 .remainingSeconds(remainingSeconds)
                 .totalSeconds(TOTAL_SECONDS)
                 .percentual(percentual)
+                .owingSeconds(0)
                 .build();
+    }
+
+    public long getTotalApprovedSeconds(Integer userId, Integer projectId) {
+        return hoursReportRepository
+                .findByStudentUserIdAndProjectIdAndStatusAndExitTimeIsNotNull(userId, projectId, HoursReportStatus.APPROVED)
+                .stream()
+                .map(HoursReport::getTotalTimeSeconds)
+                .filter(Objects::nonNull)
+                .mapToLong(Integer::longValue)
+                .sum();
     }
 
     public long getTotalSeconds(Integer userId) {

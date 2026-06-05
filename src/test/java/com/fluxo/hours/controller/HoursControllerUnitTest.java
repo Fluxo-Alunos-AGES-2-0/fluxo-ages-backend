@@ -72,7 +72,8 @@ class HoursControllerUnitTest {
                         "2026-05-17T11:00:00",
                         3600,
                         "Atividade 1",
-                        "APPROVED"
+                        "APPROVED",
+                        null
                 ),
                 new HoursReportDto(
                         2L,
@@ -80,7 +81,8 @@ class HoursControllerUnitTest {
                         "2026-05-17T14:00:00",
                         7200,
                         "Atividade 2",
-                        "PENDING"
+                        "PENDING",
+                        null
                 )
         );
 
