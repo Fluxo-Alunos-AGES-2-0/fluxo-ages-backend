@@ -1,22 +1,17 @@
 package com.fluxo.report.service;
 
-import com.fluxo.infra.config.StorageProperties;
+import com.fluxo.infra.exception.StorageException;
+import com.fluxo.infra.storage.S3StorageService;
+import com.fluxo.report.enums.ReportType;
 import com.fluxo.report.exception.ReportStorageException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 
 import java.io.IOException;
 import java.net.URI;
-import java.time.Duration;
+import java.util.Locale;
 import java.util.UUID;
 
 @Service
@@ -24,29 +19,34 @@ import java.util.UUID;
 public class FileStorageService {
 
     private static final String S3_REFERENCE_PREFIX = "s3:";
+    private static final String PDF_CONTENT_TYPE = "application/pdf";
 
-    private final StorageProperties storageProperties;
-    private final S3Client s3Client;
-    private final S3Presigner s3Presigner;
+    private final S3StorageService s3StorageService;
 
-    public String saveReportFile(MultipartFile file) {
-        String key = buildS3Key("reports/" + UUID.randomUUID() + ".pdf");
+    public record UploadTarget(String uploadUrl, String fileReference, String method, String contentType) {
+    }
+
+    public String saveReportFile(MultipartFile file, ReportType reportType, Integer studentId) {
+        String key = s3StorageService.buildKey(buildReportRelativePath(reportType, studentId));
 
         try {
-            s3Client.putObject(
-                    PutObjectRequest.builder()
-                            .bucket(storageProperties.getS3().getBucket())
-                            .key(key)
-                            .contentType(file.getContentType())
-                            .build(),
-                    RequestBody.fromBytes(file.getBytes())
-            );
-
+            s3StorageService.uploadObject(key, file.getContentType(), file.getBytes());
             return S3_REFERENCE_PREFIX + key;
         } catch (IOException e) {
-            throw new ReportStorageException("Nao foi possivel ler o arquivo para envio ao S3.", e);
-        } catch (RuntimeException e) {
-            throw new ReportStorageException("Nao foi possivel salvar o arquivo no S3.", e);
+            throw new ReportStorageException("Não foi possível ler o arquivo para envio ao S3.", e);
+        } catch (StorageException e) {
+            throw new ReportStorageException("Não foi possível salvar o arquivo no S3.", e);
+        }
+    }
+
+    public UploadTarget createReportUploadTarget(ReportType reportType, Integer studentId) {
+        String key = s3StorageService.buildKey(buildReportRelativePath(reportType, studentId));
+
+        try {
+            String uploadUrl = s3StorageService.createPutPresignedUrl(key, PDF_CONTENT_TYPE);
+            return new UploadTarget(uploadUrl, S3_REFERENCE_PREFIX + key, "PUT", PDF_CONTENT_TYPE);
+        } catch (StorageException e) {
+            throw new ReportStorageException("Não foi possível gerar a URL de upload no S3.", e);
         }
     }
 
@@ -63,7 +63,11 @@ public class FileStorageService {
                 ? fileReference.substring(S3_REFERENCE_PREFIX.length())
                 : fileReference;
 
-        return generatePresignedUrl(key);
+        try {
+            return s3StorageService.createGetPresignedUrl(key);
+        } catch (StorageException e) {
+            throw new ReportStorageException("Não foi possível gerar a URL de acesso no S3.", e);
+        }
     }
 
     public void deleteFile(String fileReference) {
@@ -76,55 +80,67 @@ public class FileStorageService {
                 : fileReference;
 
         try {
-            s3Client.deleteObject(DeleteObjectRequest.builder()
-                    .bucket(storageProperties.getS3().getBucket())
-                    .key(key)
-                    .build());
-        } catch (RuntimeException e) {
-            throw new ReportStorageException("Nao foi possivel deletar o arquivo do S3.", e);
+            s3StorageService.deleteObject(key);
+        } catch (StorageException e) {
+            throw new ReportStorageException("Não foi possível excluir o arquivo do S3.", e);
         }
     }
 
-    private String generatePresignedUrl(String key) {
+    public String validateReportFileExists(String fileReference, ReportType reportType, Integer studentId) {
+        String key = extractS3Key(fileReference);
+
+        if (!isExpectedReportKey(key, reportType, studentId)) {
+            throw new ReportStorageException("Referência de arquivo inválida para relatório.");
+        }
+
         try {
-            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                    .bucket(storageProperties.getS3().getBucket())
-                    .key(key)
-                    .build();
-
-            GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-                    .signatureDuration(Duration.ofMinutes(storageProperties.getS3().getPresignedUrlDurationMinutes()))
-                    .getObjectRequest(getObjectRequest)
-                    .build();
-
-            return s3Presigner.presignGetObject(presignRequest)
-                    .url()
-                    .toString();
-        } catch (RuntimeException e) {
-            throw new ReportStorageException("Nao foi possivel gerar a URL de acesso no S3.", e);
+            s3StorageService.assertObjectExists(key);
+            return S3_REFERENCE_PREFIX + key;
+        } catch (StorageException e) {
+            throw new ReportStorageException("Arquivo informado não foi encontrado no S3.", e);
         }
     }
 
-    private String buildS3Key(String relativePath) {
-        String normalizedPath = normalizePath(relativePath);
-        String keyPrefix = normalizePath(storageProperties.getS3().getKeyPrefix());
+    private String buildReportRelativePath(ReportType reportType, Integer studentId) {
+        String typeSegment = reportType == null
+                ? "legacy"
+                : reportType.name().toLowerCase(Locale.ROOT);
+        String ownerSegment = studentId == null ? "unknown" : studentId.toString();
 
-        if (!StringUtils.hasText(keyPrefix)) {
-            return normalizedPath;
-        }
-
-        return keyPrefix + "/" + normalizedPath;
+        return "reports/" + typeSegment + "/" + ownerSegment + "/" + UUID.randomUUID() + ".pdf";
     }
 
-    private String normalizePath(String value) {
-        if (!StringUtils.hasText(value)) {
-            return "";
+    private String extractS3Key(String fileReference) {
+        if (!StringUtils.hasText(fileReference) || looksLikeAbsoluteUrl(fileReference)) {
+            throw new ReportStorageException("Referência de arquivo inválida para S3.");
         }
 
-        return value.replace("\\", "/").replaceAll("^/+", "").replaceAll("/+$", "");
+        return fileReference.startsWith(S3_REFERENCE_PREFIX)
+                ? fileReference.substring(S3_REFERENCE_PREFIX.length())
+                : fileReference;
+    }
+
+    private boolean isExpectedReportKey(String key, ReportType reportType, Integer studentId) {
+        String normalizedKey = s3StorageService.normalizePath(key);
+        String expectedPrefix = s3StorageService.buildKey(buildReportRelativePathPrefix(reportType, studentId));
+
+        return normalizedKey.startsWith(expectedPrefix + "/") && normalizedKey.endsWith(".pdf");
+    }
+
+    private String buildReportRelativePathPrefix(ReportType reportType, Integer studentId) {
+        String typeSegment = reportType == null
+                ? "legacy"
+                : reportType.name().toLowerCase(Locale.ROOT);
+        String ownerSegment = studentId == null ? "unknown" : studentId.toString();
+
+        return "reports/" + typeSegment + "/" + ownerSegment;
     }
 
     private boolean looksLikeAbsoluteUrl(String value) {
+        if (value.startsWith(S3_REFERENCE_PREFIX)) {
+            return false;
+        }
+
         try {
             URI uri = URI.create(value);
             return uri.getScheme() != null;
