@@ -50,7 +50,7 @@ public class GlobalExceptionHandler {
                 .stream()
                 .findFirst()
                 .map(error -> error.getDefaultMessage())
-                .orElse("Dados invalidos");
+                .orElse("Dados inválidos");
 
         return ResponseEntity.badRequest()
                 .body(Map.of("error", errorMessage));

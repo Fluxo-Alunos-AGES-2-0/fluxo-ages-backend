@@ -39,7 +39,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/auth/forgot-password").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/reset-password").permitAll()
                         .requestMatchers(HttpMethod.GET, "/schedule").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                         .requestMatchers("/v3/api-docs/**").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/swagger-ui.html").permitAll()
@@ -51,12 +50,12 @@ public class SecurityConfig {
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                            response.getWriter().write("{\"error\":\"Token ausente ou invalido\"}");
+                            response.getWriter().write("{\"error\":\"Token ausente ou inválido\"}");
                         })
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
                             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                            response.getWriter().write("{\"error\":\"Token valido sem permissao\"}");
+                            response.getWriter().write("{\"error\":\"Token válido sem permissão\"}");
                         })
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

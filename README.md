@@ -92,6 +92,21 @@ docker-compose up --build
 
 > **Nota:** O Hibernate está configurado com `ddl-auto=update`. Isso significa que as tabelas serão criadas e atualizadas automaticamente no banco de dados assim que a aplicação subir, espelhando as suas classes `@Entity`.
 
+### Storage de arquivos (S3)
+O backend armazena arquivos de usuario no Amazon S3. Use `APP_STORAGE_S3_KEY_PREFIX` para separar ambientes no mesmo bucket, por exemplo `dev` e `prod`.
+
+Variaveis principais:
+```bash
+APP_STORAGE_S3_BUCKET=fluxo--ages-2.0-alunos
+APP_STORAGE_S3_REGION=us-east-2
+APP_STORAGE_S3_KEY_PREFIX=dev
+APP_STORAGE_S3_PRESIGNED_URL_DURATION_MINUTES=60
+APP_STORAGE_S3_ACCESS_KEY=...
+APP_STORAGE_S3_SECRET_KEY=...
+```
+
+Em Lambda, prefira usar a role de execucao com permissao no bucket e deixar `APP_STORAGE_S3_ACCESS_KEY` e `APP_STORAGE_S3_SECRET_KEY` vazias. O banco guarda a referencia do objeto e a API devolve uma URL pre-assinada para acesso ao arquivo.
+
 ### 🛑 Como parar o projeto e limpar a memória
 Quando terminar o dia de trabalho, sempre desligue os containers rodando:
 ```bash

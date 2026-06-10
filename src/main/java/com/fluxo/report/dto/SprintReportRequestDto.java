@@ -6,24 +6,24 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record SprintReportRequestDto(
-        @NotNull(message = "A sprint e obrigatoria")
+        @NotNull(message = "A sprint é obrigatória")
         @Min(value = 1, message = "A sprint deve ser entre 1 e 5")
         @Max(value = 5, message = "A sprint deve ser entre 1 e 5")
         Integer sprint,
 
-        @NotBlank(message = "As atividades previstas sao obrigatorias")
+        @NotBlank(message = "As atividades previstas são obrigatórias")
         String predictedActivity,
 
-        @NotBlank(message = "As atividades concluidas sao obrigatorias")
+        @NotBlank(message = "As atividades concluídas são obrigatórias")
         String activityCompleted,
 
-        @NotBlank(message = "Os problemas encontrados sao obrigatorios")
+        @NotBlank(message = "Os problemas encontrados são obrigatórios")
         String problemsEncountered,
 
-        @NotBlank(message = "As licoes aprendidas sao obrigatorias")
+        @NotBlank(message = "As lições aprendidas são obrigatórias")
         String learnedLessons,
 
-        @NotBlank(message = "Os proximos passos sao obrigatorios")
+        @NotBlank(message = "Os próximos passos são obrigatórios")
         String nextSteps
 ) {
 }
