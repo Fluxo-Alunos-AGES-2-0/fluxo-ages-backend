@@ -3,12 +3,15 @@ package com.fluxo.report.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fluxo.report.dto.FinalReportResponseDto;
 import com.fluxo.report.dto.ProgressReportResponseDto;
+import com.fluxo.report.dto.ReportArchiveResponseDto;
+import com.fluxo.report.dto.ReportUploadUrlResponseDto;
 import com.fluxo.report.dto.SprintReportRequestDto;
 import com.fluxo.report.dto.SprintReportResponseDto;
 import com.fluxo.report.exception.ReportTemplateNotFoundException;
 import com.fluxo.report.service.ReportService;
 import com.fluxo.report.service.ReportTemplateService;
 import com.fluxo.report.service.SprintReportService;
+import com.fluxo.user.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -63,6 +67,60 @@ class ReportControllerTest {
                 .setControllerAdvice(new com.fluxo.infra.exception.GlobalExceptionHandler())
                 .build();
         objectMapper = new ObjectMapper();
+    }
+
+    @Test
+    @DisplayName("POST /report/progress/upload-url returns a presigned upload URL")
+    void testCreateProgressReportUploadUrlSuccess() throws Exception {
+        User user = new User();
+        user.setId(10);
+        TestingAuthenticationToken authentication = new TestingAuthenticationToken(user, null);
+
+        ReportUploadUrlResponseDto response = new ReportUploadUrlResponseDto(
+                "https://s3.example/upload",
+                "s3:dev/reports/ra/10/file.pdf",
+                "PUT",
+                "application/pdf"
+        );
+
+        when(reportService.createProgressReportUploadUrl(10)).thenReturn(response);
+
+        mockMvc.perform(post("/report/progress/upload-url").principal(authentication))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.uploadUrl", equalTo("https://s3.example/upload")))
+                .andExpect(jsonPath("$.fileReference", equalTo("s3:dev/reports/ra/10/file.pdf")))
+                .andExpect(jsonPath("$.method", equalTo("PUT")))
+                .andExpect(jsonPath("$.contentType", equalTo("application/pdf")));
+
+        verify(reportService).createProgressReportUploadUrl(10);
+    }
+
+    @Test
+    @DisplayName("POST /report/final/confirm stores the uploaded file reference")
+    void testConfirmFinalReportUploadSuccess() throws Exception {
+        User user = new User();
+        user.setId(11);
+        TestingAuthenticationToken authentication = new TestingAuthenticationToken(user, null);
+
+        ReportArchiveResponseDto response = new ReportArchiveResponseDto(
+                77,
+                "https://signed.example/final.pdf",
+                "2026-06-05T10:15:30Z"
+        );
+
+        when(reportService.confirmFinalReportUpload("s3:dev/reports/rf/11/file.pdf", 11))
+                .thenReturn(response);
+
+        mockMvc.perform(post("/report/final/confirm")
+                        .principal(authentication)
+                        .contentType(APPLICATION_JSON)
+                        .content("{\"fileReference\":\"s3:dev/reports/rf/11/file.pdf\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id", equalTo(77)))
+                .andExpect(jsonPath("$.archiveUrl", equalTo("https://signed.example/final.pdf")))
+                .andExpect(jsonPath("$.createdAt", equalTo("2026-06-05T10:15:30Z")));
+
+        verify(reportService).confirmFinalReportUpload("s3:dev/reports/rf/11/file.pdf", 11);
     }
 
     @Test
