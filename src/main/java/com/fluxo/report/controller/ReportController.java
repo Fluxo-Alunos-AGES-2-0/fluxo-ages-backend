@@ -35,7 +35,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -48,19 +47,6 @@ public class ReportController {
     private final ReportService reportService;
     private final SprintReportService sprintReportService;
     private final ReportTemplateService reportTemplateService;
-
-    @PostMapping(value = "/progress", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "Upload de relatório de andamento", description = "Faz o upload do arquivo de relatório de andamento do aluno autenticado")
-    public ResponseEntity<ReportArchiveResponseDto> uploadProgressReport(
-            @RequestParam("file") MultipartFile file,
-            Authentication authentication) {
-
-        User authenticatedUser = (User) authentication.getPrincipal();
-        Integer studentId = authenticatedUser.getId();
-        ReportArchiveResponseDto response = reportService.uploadProgressReport(file, studentId);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
 
     @PostMapping("/progress/upload-url")
     @Operation(summary = "Gerar URL de upload de relatório de andamento", description = "Retorna uma URL temporária para upload direto do PDF no S3")
@@ -82,19 +68,6 @@ public class ReportController {
                 request.fileReference(),
                 authenticatedUser.getId()
         );
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    @PostMapping(value = "/final", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "Upload de relatório final", description = "Faz o upload do arquivo de relatório final do aluno autenticado")
-    public ResponseEntity<ReportArchiveResponseDto> uploadFinalReport(
-            @RequestParam("file") MultipartFile file,
-            Authentication authentication) {
-
-        User authenticatedUser = (User) authentication.getPrincipal();
-        Integer studentId = authenticatedUser.getId();
-        ReportArchiveResponseDto response = reportService.uploadFinalReport(file, studentId);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

@@ -10,7 +10,6 @@ import com.fluxo.report.entity.Report;
 import com.fluxo.report.entity.ReportArchive;
 import com.fluxo.report.entity.ReportReview;
 import com.fluxo.report.enums.ReportType;
-import com.fluxo.report.exception.InvalidReportFileException;
 import com.fluxo.report.exception.ReportAccessDeniedException;
 import com.fluxo.report.exception.ReportNotFoundException;
 import com.fluxo.report.exception.StudentProjectNotFoundException;
@@ -18,6 +17,7 @@ import com.fluxo.report.repository.ReportArchiveRepository;
 import com.fluxo.report.repository.ReportRepository;
 import com.fluxo.report.repository.ReportReviewRepository;
 import com.fluxo.report.repository.SprintReportRepository;
+import com.fluxo.user.entity.StudentProfile;
 import com.fluxo.user.entity.User;
 import com.fluxo.user.repository.StudentProfileRepository;
 import com.fluxo.user.repository.UserRepository;
@@ -25,7 +25,6 @@ import com.fluxo.user.service.AuthenticatedUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -34,9 +33,6 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class ReportService {
-
-    private static final long MAX_FILE_SIZE = 25 * 1024 * 1024;
-    private static final String PDF_CONTENT_TYPE = "application/pdf";
 
     private final ReportArchiveRepository reportArchiveRepository;
     private final UserRepository userRepository;
@@ -86,22 +82,8 @@ public class ReportService {
                 .toList();
     }
 
-    private void validateFile(MultipartFile file) {
-        if (file.isEmpty()) {
-            throw new InvalidReportFileException("Arquivo não pode estar vazio.");
-        }
-
-        if (!PDF_CONTENT_TYPE.equals(file.getContentType())) {
-            throw new InvalidReportFileException("Formato inválido. Apenas arquivos PDF são aceitos.");
-        }
-
-        if (file.getSize() > MAX_FILE_SIZE) {
-            throw new InvalidReportFileException("O arquivo não pode exceder 25MB.");
-        }
-    }
-
     private Project findCurrentProject(Integer userId) {
-        com.fluxo.user.entity.StudentProfile studentProfile = studentProfileRepository
+        StudentProfile studentProfile = studentProfileRepository
                 .findByStudentUserId(userId)
                 .orElse(null);
 
@@ -115,21 +97,6 @@ public class ReportService {
     @FunctionalInterface
     private interface ExistingReportFinder {
         Optional<ReportArchive> find(Integer studentId, Project project);
-    }
-
-    private ReportArchiveResponseDto uploadReport(
-            MultipartFile file,
-            Integer studentId,
-            ReportType reportType,
-            ExistingReportFinder existingReportFinder) {
-
-        validateFile(file);
-
-        Project projectRef = findCurrentProject(studentId);
-        String fileReference = fileStorageService.saveReportFile(file, reportType, studentId);
-
-        ReportArchive savedReport = saveReportReference(studentId, projectRef, reportType, fileReference, existingReportFinder);
-        return buildResponse(savedReport);
     }
 
     private ReportArchive saveReportReference(
@@ -167,26 +134,6 @@ public class ReportService {
                 report.getId(),
                 fileStorageService.resolveFileUrl(report.getUrlArchive()),
                 report.getCreateDate().toInstant().toString()
-        );
-    }
-
-    @Transactional
-    public ReportArchiveResponseDto uploadProgressReport(MultipartFile file, Integer studentId) {
-        return uploadReport(
-                file,
-                studentId,
-                ReportType.RA,
-                (id, project) -> reportArchiveRepository.findByStudentUserIdAndProjectIdAndType(id, project.getId(), ReportType.RA)
-        );
-    }
-
-    @Transactional
-    public ReportArchiveResponseDto uploadFinalReport(MultipartFile file, Integer studentId) {
-        return uploadReport(
-                file,
-                studentId,
-                ReportType.RF,
-                (id, project) -> reportArchiveRepository.findByStudentUserIdAndProjectIdAndType(id, project.getId(), ReportType.RF)
         );
     }
 

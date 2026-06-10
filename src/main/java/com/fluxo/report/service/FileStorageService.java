@@ -7,9 +7,7 @@ import com.fluxo.report.exception.ReportStorageException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.Locale;
 import java.util.UUID;
@@ -24,19 +22,6 @@ public class FileStorageService {
     private final S3StorageService s3StorageService;
 
     public record UploadTarget(String uploadUrl, String fileReference, String method, String contentType) {
-    }
-
-    public String saveReportFile(MultipartFile file, ReportType reportType, Integer studentId) {
-        String key = s3StorageService.buildKey(buildReportRelativePath(reportType, studentId));
-
-        try {
-            s3StorageService.uploadObject(key, file.getContentType(), file.getBytes());
-            return S3_REFERENCE_PREFIX + key;
-        } catch (IOException e) {
-            throw new ReportStorageException("Não foi possível ler o arquivo para envio ao S3.", e);
-        } catch (StorageException e) {
-            throw new ReportStorageException("Não foi possível salvar o arquivo no S3.", e);
-        }
     }
 
     public UploadTarget createReportUploadTarget(ReportType reportType, Integer studentId) {
