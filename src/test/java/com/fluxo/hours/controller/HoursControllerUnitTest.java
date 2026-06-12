@@ -1,10 +1,13 @@
 package com.fluxo.hours.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fluxo.hours.dto.*;
 import com.fluxo.hours.exception.ActiveHoursNotFoundException;
 import com.fluxo.hours.exception.HoursAlreadyOpenException;
 import com.fluxo.hours.service.HoursReportService;
 import com.fluxo.hours.service.HoursService;
+import com.fluxo.infra.exception.GlobalExceptionHandler;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,16 +15,23 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("HoursController Unit Tests")
@@ -32,8 +42,20 @@ class HoursControllerUnitTest {
 
     @Mock
     private HoursService hoursService;
+    
     @Mock
     private HoursReportService hoursReportService;
+
+    private MockMvc mockMvc;
+    private ObjectMapper objectMapper;
+
+    @BeforeEach
+    void setUp() {
+        objectMapper = new ObjectMapper();
+        mockMvc = MockMvcBuilders.standaloneSetup(hoursController)
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
+    }
 
     @Test
     @DisplayName("Should return 200 when active hours exists")
@@ -49,6 +71,7 @@ class HoursControllerUnitTest {
         assertEquals(dto, response.getBody());
         verify(hoursService, times(1)).findActiveHours();
     }
+
     @Test
     @DisplayName("Should return 404 when no active hours exists")
     void shouldReturn404WhenNoActiveHoursExists() {
@@ -177,5 +200,30 @@ class HoursControllerUnitTest {
 
         assertThrows(ActiveHoursNotFoundException.class, () -> hoursController.stopHours(request));
         verify(hoursService, times(1)).stopHours(request);
+    }
+
+    @Test
+    @DisplayName("Should return 409 when POST /hours/start throws HoursAlreadyOpenException")
+    void shouldReturn409WhenStartHoursThrowsException() throws Exception {
+        when(hoursService.startHours()).thenThrow(new HoursAlreadyOpenException("Já existe sessão ativa"));
+
+        mockMvc.perform(post("/hours/start")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error").value("Já existe sessão ativa"));
+    }
+
+    @Test
+    @DisplayName("Should return 404 when POST /hours/stop throws ActiveHoursNotFoundException")
+    void shouldReturn404WhenStopHoursThrowsException() throws Exception {
+        StopHoursRequestDto request = new StopHoursRequestDto("Descrição válida e longa");
+        when(hoursService.stopHours(any(StopHoursRequestDto.class)))
+                .thenThrow(new ActiveHoursNotFoundException("Nenhuma sessão ativa"));
+
+        mockMvc.perform(post("/hours/stop")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("Nenhuma sessão ativa"));
     }
 }
