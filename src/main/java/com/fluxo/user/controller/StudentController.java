@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,5 +31,16 @@ public class StudentController {
         return studentService.getLoggedStudentProfile()
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/me/avatar")
+    @Operation(summary = "Atualizar foto de perfil", description = "Faz o upload e atualiza a foto de perfil do estudante autenticado")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Foto atualizada com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Arquivo inválido ou muito grande"),
+        @ApiResponse(responseCode = "404", description = "Estudante não encontrado")
+    })
+    public ResponseEntity<com.fluxo.user.dto.AvatarUploadResponseDto> updateAvatar(@org.springframework.web.bind.annotation.RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
+        return ResponseEntity.ok(studentService.updateAvatar(file));
     }
 }
