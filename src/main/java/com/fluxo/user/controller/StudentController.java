@@ -33,7 +33,7 @@ public class StudentController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PutMapping("/me/avatar")
+    @PutMapping(value = "/me/avatar", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Atualizar foto de perfil", description = "Faz o upload e atualiza a foto de perfil do estudante autenticado")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Foto atualizada com sucesso"),
