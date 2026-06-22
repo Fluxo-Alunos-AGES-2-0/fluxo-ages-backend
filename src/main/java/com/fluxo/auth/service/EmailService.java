@@ -60,7 +60,7 @@ public class EmailService {
     }
     
     @Async
-    public void sendHoursStoppedEmail(String to, String studentName, Instant entryTime, Instant exitTime, Integer totalTimeSeconds) {
+    public void sendHoursStoppedEmail(String to, String studentName, Instant entryTime, Instant exitTime, Integer totalTimeSeconds, String activities) {
         String subject = "Encerramento de Registro de Horas";
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
@@ -79,6 +79,7 @@ public class EmailService {
                 + "Horário de Início: " + formattedStartTime + "\n"
                 + "Horário de Término: " + formattedEndTime + "\n"
                 + "Duração Total: " + formattedDuration + "\n\n"
+                + "Atividades realizadas: " + activities + "\n\n"
                 + "Controle de Fluxo de Acesso da AGES.";
 
         SimpleMailMessage message = new SimpleMailMessage();
