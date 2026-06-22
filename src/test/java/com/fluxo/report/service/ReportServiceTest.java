@@ -9,12 +9,15 @@ import com.fluxo.report.repository.ReportArchiveRepository;
 import com.fluxo.report.repository.ReportRepository;
 import com.fluxo.report.repository.ReportReviewRepository;
 import com.fluxo.report.repository.SprintReportRepository;
+import com.fluxo.report.dto.ProgressReportResponseDto;
+import com.fluxo.report.entity.ReportReview;
 import com.fluxo.user.entity.User;
 import com.fluxo.user.repository.UserRepository;
 import com.fluxo.user.service.AuthenticatedUserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -83,7 +86,91 @@ class ReportServiceTest {
 
         assertEquals(1, result.size());
         assertEquals("https://signed.example/report.pdf", result.getFirst().urlArchive());
+        assertNull(result.getFirst().feedback());
+        verify(reportReviewRepository).findById(15);
         verify(fileStorageService).resolveFileUrl("s3:reports/report.pdf");
+    }
+
+    @Test
+    @DisplayName("getProgressReports returns teacher feedback when report review exists")
+    void getProgressReportsReturnsTeacherFeedbackWhenReviewExists() {
+        User authenticatedUser = new User();
+        authenticatedUser.setId(7);
+
+        Project project = new Project();
+        project.setName("Projeto S3");
+
+        ReportArchive report = new ReportArchive();
+        report.setId(17);
+        report.setType(ReportType.RA);
+        report.setProject(project);
+        report.setCreateDate(OffsetDateTime.parse("2026-06-05T10:15:30Z"));
+        report.setUrlArchive("s3:reports/progress.pdf");
+
+        ReportReview review = new ReportReview();
+        review.setComment("Boa entrega de andamento...");
+        review.setCorrectionUrl("s3:corrections/progress-correction.pdf");
+        review.setRevisionDate(OffsetDateTime.parse("2026-06-08T10:15:30Z"));
+
+        when(authenticatedUserService.getAuthenticatedUser()).thenReturn(authenticatedUser);
+        when(reportRepository.findByStudentUserId(7)).thenReturn(List.of(report));
+        when(fileStorageService.resolveFileUrl("s3:reports/progress.pdf"))
+                .thenReturn("https://signed.example/progress.pdf");
+        when(reportReviewRepository.findById(17)).thenReturn(Optional.of(review));
+        when(fileStorageService.resolveFileUrl("s3:corrections/progress-correction.pdf"))
+                .thenReturn("https://signed.example/progress-correction.pdf");
+
+        List<ProgressReportResponseDto> result = reportService.getProgressReports();
+
+        assertEquals(1, result.size());
+        assertEquals("https://signed.example/progress.pdf", result.getFirst().urlArchive());
+        assertEquals("Boa entrega de andamento...", result.getFirst().feedback().comment());
+        assertEquals("https://signed.example/progress-correction.pdf", result.getFirst().feedback().correctionUrl());
+        assertEquals(OffsetDateTime.parse("2026-06-08T10:15:30Z"), result.getFirst().feedback().revisionDate());
+
+        verify(reportReviewRepository).findById(17);
+        verify(fileStorageService).resolveFileUrl("s3:corrections/progress-correction.pdf");
+    }
+
+    @Test
+    @DisplayName("getFinalReports returns teacher feedback when report review exists")
+    void getFinalReportsReturnsTeacherFeedbackWhenReviewExists() {
+        User authenticatedUser = new User();
+        authenticatedUser.setId(7);
+
+        Project project = new Project();
+        project.setName("Projeto S3");
+
+        ReportArchive report = new ReportArchive();
+        report.setId(16);
+        report.setType(ReportType.RF);
+        report.setProject(project);
+        report.setCreateDate(OffsetDateTime.parse("2026-06-05T10:15:30Z"));
+        report.setUrlArchive("s3:reports/final.pdf");
+
+        ReportReview review = new ReportReview();
+        review.setComment("Boa entrega final...");
+        review.setCorrectionUrl("s3:corrections/final-correction.pdf");
+        review.setRevisionDate(OffsetDateTime.parse("2026-06-07T10:15:30Z"));
+
+        when(authenticatedUserService.getAuthenticatedUser()).thenReturn(authenticatedUser);
+        when(reportRepository.findByStudentUserId(7)).thenReturn(List.of(report));
+        when(fileStorageService.resolveFileUrl("s3:reports/final.pdf"))
+                .thenReturn("https://signed.example/final.pdf");
+        when(reportReviewRepository.findById(16)).thenReturn(Optional.of(review));
+        when(fileStorageService.resolveFileUrl("s3:corrections/final-correction.pdf"))
+                .thenReturn("https://signed.example/final-correction.pdf");
+
+        List<FinalReportResponseDto> result = reportService.getFinalReports();
+
+        assertEquals(1, result.size());
+        assertEquals("https://signed.example/final.pdf", result.getFirst().urlArchive());
+        assertEquals("Boa entrega final...", result.getFirst().feedback().comment());
+        assertEquals("https://signed.example/final-correction.pdf", result.getFirst().feedback().correctionUrl());
+        assertEquals(OffsetDateTime.parse("2026-06-07T10:15:30Z"), result.getFirst().feedback().revisionDate());
+
+        verify(reportReviewRepository).findById(16);
+        verify(fileStorageService).resolveFileUrl("s3:corrections/final-correction.pdf");
     }
 
     @Test
