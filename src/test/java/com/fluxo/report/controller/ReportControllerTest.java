@@ -7,6 +7,7 @@ import com.fluxo.report.dto.ReportArchiveResponseDto;
 import com.fluxo.report.dto.ReportUploadUrlResponseDto;
 import com.fluxo.report.dto.SprintReportRequestDto;
 import com.fluxo.report.dto.SprintReportResponseDto;
+import com.fluxo.report.dto.ReportFeedbackResponseDto;
 import com.fluxo.report.exception.ReportTemplateNotFoundException;
 import com.fluxo.report.service.ReportService;
 import com.fluxo.report.service.ReportTemplateService;
@@ -132,7 +133,11 @@ class ReportControllerTest {
                 "Project Alpha",
                 new BigDecimal("8.50"),
                 "http://example.com/file1.pdf",
-                "Excellent work"
+                new ReportFeedbackResponseDto(
+                        "Excellent work",
+                        "http://example.com/correction1.pdf",
+                        OffsetDateTime.of(2024, 1, 20, 10, 0, 0, 0, ZoneOffset.UTC)
+                )
         );
         FinalReportResponseDto report2 = new FinalReportResponseDto(
                 2,
@@ -140,7 +145,11 @@ class ReportControllerTest {
                 "Project Beta",
                 new BigDecimal("9.00"),
                 "http://example.com/file2.pdf",
-                "Outstanding performance"
+                new ReportFeedbackResponseDto(
+                        "Outstanding performance",
+                        "http://example.com/correction2.pdf",
+                        OffsetDateTime.of(2024, 2, 20, 10, 0, 0, 0, ZoneOffset.UTC)
+                )
         );
 
         when(reportService.getFinalReports()).thenReturn(List.of(report1, report2));
@@ -150,8 +159,14 @@ class ReportControllerTest {
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].project", equalTo("Project Alpha")))
                 .andExpect(jsonPath("$[0].grade", equalTo(8.50)))
+                .andExpect(jsonPath("$[0].feedback.comment", equalTo("Excellent work")))
+                .andExpect(jsonPath("$[0].feedback.correctionUrl", equalTo("http://example.com/correction1.pdf")))
+                .andExpect(jsonPath("$[0].feedback.revisionDate", equalTo("2024-01-20T10:00:00Z")))
                 .andExpect(jsonPath("$[1].project", equalTo("Project Beta")))
                 .andExpect(jsonPath("$[1].grade", equalTo(9.00)))
+                .andExpect(jsonPath("$[1].feedback.comment", equalTo("Outstanding performance")))
+                .andExpect(jsonPath("$[1].feedback.correctionUrl", equalTo("http://example.com/correction2.pdf")))
+                .andExpect(jsonPath("$[1].feedback.revisionDate", equalTo("2024-02-20T10:00:00Z")))
                 .andDo(print());
 
         verify(reportService, times(1)).getFinalReports();
@@ -209,7 +224,11 @@ class ReportControllerTest {
                 "Project Alpha",
                 new BigDecimal("7.50"),
                 "http://example.com/prog1.pdf",
-                "Good progress"
+                new ReportFeedbackResponseDto(
+                        "Good progress",
+                        "http://example.com/prog-correction1.pdf",
+                        OffsetDateTime.of(2024, 1, 12, 10, 0, 0, 0, ZoneOffset.UTC)
+                )
         );
         ProgressReportResponseDto report2 = new ProgressReportResponseDto(
                 2,
@@ -217,7 +236,11 @@ class ReportControllerTest {
                 "Project Beta",
                 new BigDecimal("8.00"),
                 "http://example.com/prog2.pdf",
-                "Very good progress"
+                new ReportFeedbackResponseDto(
+                        "Very good progress",
+                        "http://example.com/prog-correction2.pdf",
+                        OffsetDateTime.of(2024, 2, 12, 10, 0, 0, 0, ZoneOffset.UTC)
+                )
         );
 
         when(reportService.getProgressReports()).thenReturn(List.of(report1, report2));
@@ -227,8 +250,14 @@ class ReportControllerTest {
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].project", equalTo("Project Alpha")))
                 .andExpect(jsonPath("$[0].grade", equalTo(7.50)))
+                .andExpect(jsonPath("$[0].feedback.comment", equalTo("Good progress")))
+                .andExpect(jsonPath("$[0].feedback.correctionUrl", equalTo("http://example.com/prog-correction1.pdf")))
+                .andExpect(jsonPath("$[0].feedback.revisionDate", equalTo("2024-01-12T10:00:00Z")))
                 .andExpect(jsonPath("$[1].project", equalTo("Project Beta")))
                 .andExpect(jsonPath("$[1].grade", equalTo(8.00)))
+                .andExpect(jsonPath("$[1].feedback.comment", equalTo("Very good progress")))
+                .andExpect(jsonPath("$[1].feedback.correctionUrl", equalTo("http://example.com/prog-correction2.pdf")))
+                .andExpect(jsonPath("$[1].feedback.revisionDate", equalTo("2024-02-12T10:00:00Z")))
                 .andDo(print());
 
         verify(reportService, times(1)).getProgressReports();
