@@ -32,6 +32,7 @@ public class HoursService {
 
     private static final ReportType HOURS_REPORT_TYPE = ReportType.HOURS;
     private static final long TOTAL_SECONDS = 216000L;
+    private static final long OWING_SECONDS = 14400L;
 
     private final HoursReportRepository hoursReportRepository;
     private final AuthenticatedUserService authenticatedUserService;
@@ -109,7 +110,8 @@ public class HoursService {
                     authenticatedUser.getName(),
                     savedHoursReport.getEntryTime().toInstant(),
                     savedHoursReport.getExitTime().toInstant(),
-                    savedHoursReport.getTotalTimeSeconds()
+                    savedHoursReport.getTotalTimeSeconds(),
+                    savedHoursReport.getActivities()
             );
         } catch (Exception e) {
             System.err.println("Erro ao enviar email de encerramento de horas para " + authenticatedUser.getEmail() + ": " + e.getMessage());
@@ -141,6 +143,7 @@ public class HoursService {
 
         long totalCompletedSeconds = getTotalApprovedSeconds(authenticatedUser.getId(), currentProject.getId());
         long remainingSeconds = Math.max(0, TOTAL_SECONDS - totalCompletedSeconds);
+        long owingSeconds = calculateOwingSeconds(authenticatedUser.getId(), currentProject.getId());
         double percentual = (totalCompletedSeconds * 100.0) / TOTAL_SECONDS;
 
         return HoursDTO.builder()
@@ -148,8 +151,13 @@ public class HoursService {
                 .remainingSeconds(remainingSeconds)
                 .totalSeconds(TOTAL_SECONDS)
                 .percentual(percentual)
-                .owingSeconds(0)
+                .owingSeconds(owingSeconds)
                 .build();
+    }
+
+    private long calculateOwingSeconds(Integer userId, Integer projectId) {
+        long totalCompletedSeconds = getTotalApprovedSeconds(userId, projectId);
+        return Math.max(0, OWING_SECONDS - totalCompletedSeconds);
     }
 
     public long getTotalApprovedSeconds(Integer userId, Integer projectId) {

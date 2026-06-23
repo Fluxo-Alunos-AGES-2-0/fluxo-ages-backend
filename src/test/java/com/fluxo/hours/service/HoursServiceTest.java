@@ -252,7 +252,8 @@ class HoursServiceTest {
                 user.getName(),
                 entryTime.toInstant(),
                 endTime.toInstant(),
-                expectedTotalSeconds
+                expectedTotalSeconds,
+                request.description()
         );
     }
 
@@ -270,6 +271,10 @@ class HoursServiceTest {
         when(hoursReportRepository.save(any(HoursReport.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
+        StopHoursRequestDto request = new StopHoursRequestDto(
+                "Descrição válida para encerramento das horas."
+        );
+
         doThrow(new RuntimeException("Erro ao enviar email"))
                 .when(emailService)
                 .sendHoursStoppedEmail(
@@ -277,12 +282,9 @@ class HoursServiceTest {
                         anyString(),
                         any(Instant.class),
                         any(Instant.class),
-                        anyInt()
+                        anyInt(),
+                        anyString()
                 );
-
-        StopHoursRequestDto request = new StopHoursRequestDto(
-                "Descrição válida para encerramento das horas."
-        );
 
         StopHoursResponseDto response;
 
@@ -306,7 +308,8 @@ class HoursServiceTest {
                 user.getName(),
                 entryTime.toInstant(),
                 endTime.toInstant(),
-                600
+                600,
+                request.description()
         );
     }
 
@@ -317,30 +320,68 @@ class HoursServiceTest {
 
         mockCurrentProject(project);
 
-        HoursReport firstReport = createFinishedHoursReport(300, 1000);
-        HoursReport secondReport = createFinishedHoursReport(301, 500);
-        HoursReport reportWithoutTotal = createFinishedHoursReport(302, null);
+        HoursReport report = createFinishedHoursReport(300, 3600);
 
         when(authenticatedUserService.getAuthenticatedUser()).thenReturn(user);
         when(hoursReportRepository.findByStudentUserIdAndProjectIdAndStatusAndExitTimeIsNotNull(
                 user.getId(),
                 project.getId(),
                 HoursReportStatus.APPROVED
-        )).thenReturn(List.of(firstReport, secondReport, reportWithoutTotal));
+        )).thenReturn(List.of(report));
 
         HoursDTO response = hoursService.getHourControl();
 
-        assertThat(response.getCompletedSeconds()).isEqualTo(1500L);
-        assertThat(response.getRemainingSeconds()).isEqualTo(214500L);
+        assertThat(response.getCompletedSeconds()).isEqualTo(3600L);
+        assertThat(response.getRemainingSeconds()).isEqualTo(212400L);
         assertThat(response.getTotalSeconds()).isEqualTo(216000L);
-        assertThat(response.getPercentual()).isEqualTo((1500 * 100.0) / 216000L);
-        assertThat(response.getOwingSeconds()).isZero();
+        assertThat(response.getPercentual()).isEqualTo((3600 * 100.0) / 216000L);
+        assertThat(response.getOwingSeconds()).isEqualTo(10800L);
+    }
 
-        verify(hoursReportRepository).findByStudentUserIdAndProjectIdAndStatusAndExitTimeIsNotNull(
+    @Test
+    void getHourControlShouldReturnOwingSecondsDecreasedWhenHoursAreCompleted() {
+        User user = createUser();
+        Project project = createProject(10);
+
+        mockCurrentProject(project);
+
+        HoursReport report1 = createFinishedHoursReport(300, 3600);
+        HoursReport report2 = createFinishedHoursReport(301, 3600);
+
+        when(authenticatedUserService.getAuthenticatedUser()).thenReturn(user);
+        when(hoursReportRepository.findByStudentUserIdAndProjectIdAndStatusAndExitTimeIsNotNull(
                 user.getId(),
                 project.getId(),
                 HoursReportStatus.APPROVED
-        );
+        )).thenReturn(List.of(report1, report2));
+
+        HoursDTO response = hoursService.getHourControl();
+
+        assertThat(response.getCompletedSeconds()).isEqualTo(7200L);
+        assertThat(response.getOwingSeconds()).isEqualTo(7200L);
+    }
+
+    @Test
+    void getHourControlShouldReturnOwingSecondsAsZeroWhenCompletedHoursReachOrExceed4Hours() {
+        User user = createUser();
+        Project project = createProject(10);
+
+        mockCurrentProject(project);
+
+        HoursReport report1 = createFinishedHoursReport(300, 7200);
+        HoursReport report2 = createFinishedHoursReport(301, 7200);
+
+        when(authenticatedUserService.getAuthenticatedUser()).thenReturn(user);
+        when(hoursReportRepository.findByStudentUserIdAndProjectIdAndStatusAndExitTimeIsNotNull(
+                user.getId(),
+                project.getId(),
+                HoursReportStatus.APPROVED
+        )).thenReturn(List.of(report1, report2));
+
+        HoursDTO response = hoursService.getHourControl();
+
+        assertThat(response.getCompletedSeconds()).isEqualTo(14400L);
+        assertThat(response.getOwingSeconds()).isEqualTo(0L);
     }
 
     private User createUser() {
