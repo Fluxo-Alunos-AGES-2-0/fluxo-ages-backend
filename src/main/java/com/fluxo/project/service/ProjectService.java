@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import com.fluxo.project.dto.ProjectDetailsResponseDto;
 import com.fluxo.project.dto.ProjectTeacherResponseDto;
 import com.fluxo.project.dto.ProjectTeamMemberResponseDto;
+import com.fluxo.project.dto.TechnologyDto;
 import com.fluxo.project.exception.ProjectNotFoundException;
 import com.fluxo.user.entity.StudentProfile;
 import com.fluxo.user.entity.User;
@@ -69,8 +70,7 @@ public class ProjectService {
                 .orElseGet(() -> studentProfileOpt.get().getAgesPosition());
 
         List<ProjectTeamMemberResponseDto> team = buildProjectTeam(project);
-        List<String> technologies = extractTechnologies(project);
-
+        List<TechnologyDto> technologies = extractTechnologies(project);
         User teacher = project.getTeacherUser();
 
         return new ProjectDetailsResponseDto(
@@ -98,7 +98,8 @@ public class ProjectService {
         Project project = studentHistory.getProject();
         
         Integer membersCount = countProjectMembers(project);
-        List<String> technologies = extractTechnologies(project);
+        List<ProjectTeamMemberResponseDto> team = buildProjectTeam(project);
+        List<TechnologyDto> technologies = extractTechnologies(project);
 
         return new ProjectListResponseDto(
                 project.getId(),
@@ -111,6 +112,8 @@ public class ProjectService {
                 studentHistory.getAgesLevel(),
                 project.getGitLabLink(),
                 membersCount,
+                team.size(),
+                team,
                 technologies,
                 project.getThumbnailUrl(),
                 project.getGroupPhotoUrl()
@@ -127,14 +130,18 @@ public class ProjectService {
         return memberIds.size();
     }
 
-    private List<String> extractTechnologies(Project project) {
+    private List<TechnologyDto> extractTechnologies(Project project) {
         if (project.getTechnologies() == null || project.getTechnologies().isEmpty()) {
             return new ArrayList<>();
         }
         
         return project.getTechnologies().stream()
-                .map(tech -> tech.getName())
-                .collect(Collectors.toList());
+                .map(tech -> new TechnologyDto(
+                        tech.getId(),
+                        tech.getName(),
+                        tech.getIconUrl() // <-- Agora o ícone vai junto!
+                ))
+                .toList();
     }
 
     private List<ProjectTeamMemberResponseDto> buildProjectTeam(Project project) {
