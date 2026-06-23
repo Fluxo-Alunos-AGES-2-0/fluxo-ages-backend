@@ -97,7 +97,6 @@ public class ProjectService {
     private ProjectListResponseDto convertToDto(StudentHistory studentHistory) {
         Project project = studentHistory.getProject();
         
-        Integer membersCount = countProjectMembers(project);
         List<ProjectTeamMemberResponseDto> team = buildProjectTeam(project);
         List<TechnologyDto> technologies = extractTechnologies(project);
 
@@ -111,23 +110,12 @@ public class ProjectService {
                 project.getSemesterYear(),
                 studentHistory.getAgesLevel(),
                 project.getGitLabLink(),
-                membersCount,
                 team.size(),
                 team,
                 technologies,
                 project.getThumbnailUrl(),
                 project.getGroupPhotoUrl()
         );
-    }
-
-    private Integer countProjectMembers(Project project) {
-        Set<Integer> memberIds = studentHistoryRepository
-                .findByProject(project)
-                .stream()
-                .map(history -> history.getStudentUser().getId())
-                .collect(Collectors.toSet());
-        
-        return memberIds.size();
     }
 
     private List<TechnologyDto> extractTechnologies(Project project) {
