@@ -108,6 +108,11 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", "Acesso negado. Você não tem permissão para acessar este relatório"));
     }
 
+    @ExceptionHandler(com.fluxo.user.exception.InvalidAvatarException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidAvatarException(com.fluxo.user.exception.InvalidAvatarException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", ex.getMessage()));
+    }
     @ExceptionHandler(ProjectAccessDeniedException.class)
     public ResponseEntity<Map<String, String>> handleProjectAccessDenied(ProjectAccessDeniedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
