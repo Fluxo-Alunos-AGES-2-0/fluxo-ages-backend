@@ -9,6 +9,6 @@ public record ProgressReportResponseDto(
         String project,
         BigDecimal grade,
         String urlArchive,
-        String feedback
+        ReportFeedbackResponseDto feedback
 ) {
 }

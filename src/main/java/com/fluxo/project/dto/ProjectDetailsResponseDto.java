@@ -14,7 +14,7 @@ public record ProjectDetailsResponseDto(
         String gitLabLink,
         ProjectTeacherResponseDto teacher,
         List<ProjectTeamMemberResponseDto> team,
-        List<String> technologies,
+        List<TechnologyDto> technologies,
         String thumbnailUrl,
         String groupPhotoUrl
 ) {

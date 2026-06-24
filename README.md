@@ -93,7 +93,7 @@ docker-compose up --build
 > **Nota:** O Hibernate está configurado com `ddl-auto=update`. Isso significa que as tabelas serão criadas e atualizadas automaticamente no banco de dados assim que a aplicação subir, espelhando as suas classes `@Entity`.
 
 ### Storage de arquivos (S3)
-O backend armazena arquivos de usuario no Amazon S3. Use `APP_STORAGE_S3_KEY_PREFIX` para separar ambientes no mesmo bucket, por exemplo `dev` e `prod`.
+O backend armazena arquivos de usuario no Amazon S3.
 
 Variaveis principais:
 ```bash
@@ -105,7 +105,26 @@ APP_STORAGE_S3_ACCESS_KEY=...
 APP_STORAGE_S3_SECRET_KEY=...
 ```
 
-Em Lambda, prefira usar a role de execucao com permissao no bucket e deixar `APP_STORAGE_S3_ACCESS_KEY` e `APP_STORAGE_S3_SECRET_KEY` vazias. O banco guarda a referencia do objeto e a API devolve uma URL pre-assinada para acesso ao arquivo.
+### Email transacional via SMTP
+O backend usa SMTP generico para envio de emails. Isso permite trocar o provedor apenas por variaveis de ambiente, sem alterar a logica da aplicacao.
+
+Variaveis principais:
+```bash
+MAIL_HOST=smtp-relay.brevo.com
+MAIL_PORT=587
+MAIL_USERNAME=...
+MAIL_PASSWORD=...
+APP_EMAIL_FROM=fluxoages20@gmail.com
+APP_FRONTEND_BASE_URL=http://localhost:5173
+```
+
+Uso local:
+- mantenha `APP_FRONTEND_BASE_URL=http://localhost:5173`
+- configure `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME` e `MAIL_PASSWORD` com as credenciais SMTP do provedor
+
+Observacoes:
+- o remetente usado pela aplicacao vem de `APP_EMAIL_FROM`
+- o link enviado no fluxo de recuperacao de senha usa `APP_FRONTEND_BASE_URL`
 
 ### 🛑 Como parar o projeto e limpar a memória
 Quando terminar o dia de trabalho, sempre desligue os containers rodando:

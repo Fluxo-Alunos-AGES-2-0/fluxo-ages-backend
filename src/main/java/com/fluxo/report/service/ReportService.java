@@ -6,9 +6,9 @@ import com.fluxo.report.dto.FinalReportResponseDto;
 import com.fluxo.report.dto.ProgressReportResponseDto;
 import com.fluxo.report.dto.ReportArchiveResponseDto;
 import com.fluxo.report.dto.ReportUploadUrlResponseDto;
+import com.fluxo.report.dto.ReportFeedbackResponseDto;
 import com.fluxo.report.entity.Report;
 import com.fluxo.report.entity.ReportArchive;
-import com.fluxo.report.entity.ReportReview;
 import com.fluxo.report.enums.ReportType;
 import com.fluxo.report.exception.ReportAccessDeniedException;
 import com.fluxo.report.exception.ReportNotFoundException;
@@ -58,7 +58,7 @@ public class ReportService {
                         report instanceof ReportArchive reportArchive
                                 ? fileStorageService.resolveFileUrl(reportArchive.getUrlArchive())
                                 : null,
-                        report instanceof ReportReview reportReview ? reportReview.getComment() : null
+                        buildFeedback(report.getId(), report.getProject())
                 ))
                 .toList();
     }
@@ -77,9 +77,22 @@ public class ReportService {
                         report instanceof ReportArchive reportArchive
                                 ? fileStorageService.resolveFileUrl(reportArchive.getUrlArchive())
                                 : null,
-                        report instanceof ReportReview reportReview ? reportReview.getComment() : null
+                        buildFeedback(report.getId(), report.getProject())
                 ))
                 .toList();
+    }
+
+    private ReportFeedbackResponseDto buildFeedback(Integer reportId, Project project) {
+        return reportReviewRepository.findById(reportId)
+                .map(reportReview -> new ReportFeedbackResponseDto(
+                        reportReview.getComment(),
+                        fileStorageService.resolveFileUrl(reportReview.getCorrectionUrl()),
+                        reportReview.getRevisionDate(),
+                        project != null && project.getTeacherUser() != null
+                                ? project.getTeacherUser().getName()
+                                : null
+                ))
+                .orElse(null);
     }
 
     private Project findCurrentProject(Integer userId) {

@@ -13,6 +13,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.fluxo.project.dto.ProjectUpdateResponseDto;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -52,5 +57,34 @@ public class ProjectController {
             @PathVariable Integer id
     ) {
         return ResponseEntity.ok(projectService.getProjectDetails(id));
+    }
+
+    @PatchMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(
+            summary = "Editar parcialmente um projeto",
+            description = "Permite editar summary, description, thumbnail e foto do grupo de um projeto em andamento. Restrito a AGES IV do projeto."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Projeto atualizado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Formato de arquivo inválido"),
+            @ApiResponse(responseCode = "401", description = "Usuario nao autenticado"),
+            @ApiResponse(responseCode = "403", description = "Usuario nao possui permissao para editar este projeto"),
+            @ApiResponse(responseCode = "404", description = "Projeto nao encontrado"),
+            @ApiResponse(responseCode = "422", description = "Projeto nao esta em andamento")
+    })
+    public ResponseEntity<ProjectUpdateResponseDto> updateProject(
+            @PathVariable Integer id,
+            @RequestParam(required = false) String summary,
+            @RequestParam(required = false) String description,
+            @RequestParam(required = false) MultipartFile thumbnail,
+            @RequestParam(required = false) MultipartFile groupPhoto
+    ) {
+        return ResponseEntity.ok(projectService.updateProject(
+                id,
+                summary,
+                description,
+                thumbnail,
+                groupPhoto
+        ));
     }
 }

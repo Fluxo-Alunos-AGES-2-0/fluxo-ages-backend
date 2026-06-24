@@ -17,6 +17,10 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import com.fluxo.project.exception.InvalidProjectImageException;
+import com.fluxo.project.exception.ProjectAccessDeniedException;
+import com.fluxo.project.exception.ProjectNotEditableException;
+import com.fluxo.project.exception.ProjectStorageException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -108,5 +112,28 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleInvalidAvatarException(com.fluxo.user.exception.InvalidAvatarException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("error", ex.getMessage()));
+    }
+    @ExceptionHandler(ProjectAccessDeniedException.class)
+    public ResponseEntity<Map<String, String>> handleProjectAccessDenied(ProjectAccessDeniedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidProjectImageException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidProjectImage(InvalidProjectImageException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ProjectNotEditableException.class)
+    public ResponseEntity<Map<String, String>> handleProjectNotEditable(ProjectNotEditableException ex) {
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ProjectStorageException.class)
+    public ResponseEntity<Map<String, String>> handleProjectStorage(ProjectStorageException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Erro ao processar imagem do projeto. Por favor, tente novamente."));
     }
 }
