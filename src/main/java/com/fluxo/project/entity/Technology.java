@@ -19,4 +19,8 @@ public class Technology {
 
     @Column(nullable = false, unique = true)
     private String name;
+
+    @Column(name = "iconUrl", length = 512)
+    private String iconUrl;
+    
 }
