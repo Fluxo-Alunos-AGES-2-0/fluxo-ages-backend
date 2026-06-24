@@ -18,6 +18,21 @@ import com.fluxo.user.entity.User;
 import com.fluxo.user.repository.StudentProfileRepository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fluxo.infra.exception.StorageException;
+import com.fluxo.infra.storage.S3StorageService;
+import com.fluxo.project.dto.ProjectUpdateResponseDto;
+import com.fluxo.project.entity.ProjectStatus;
+import com.fluxo.project.exception.InvalidProjectImageException;
+import com.fluxo.project.exception.ProjectAccessDeniedException;
+import com.fluxo.project.exception.ProjectNotEditableException;
+import com.fluxo.project.exception.ProjectStorageException;
+import com.fluxo.project.repository.ProjectRepository;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.net.URI;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -25,9 +40,19 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ProjectService {
 
+    private static final int AGES_IV = 4;
+    private static final String S3_REFERENCE_PREFIX = "s3:";
+    private static final Set<String> ALLOWED_IMAGE_CONTENT_TYPES = Set.of(
+            "image/jpeg",
+            "image/jpg",
+            "image/png",
+            "image/webp"
+    );
     private final StudentHistoryRepository studentHistoryRepository;
     private final StudentProfileRepository studentProfileRepository;
     private final AuthenticatedUserService authenticatedUserService;
+    private final ProjectRepository projectRepository;
+    private final S3StorageService s3StorageService;
 
     public List<ProjectListResponseDto> getMyProjects() {
         Integer userId = authenticatedUserService.getUserId();
@@ -89,8 +114,52 @@ public class ProjectService {
                 ),
                 team,
                 technologies,
-                project.getThumbnailUrl(),
-                project.getGroupPhotoUrl()
+                resolveProjectImageUrl(project.getThumbnailUrl()),
+                resolveProjectImageUrl(project.getGroupPhotoUrl())
+        );
+    }
+
+    @Transactional
+    public ProjectUpdateResponseDto updateProject(
+            Integer projectId,
+            String summary,
+            String description,
+            MultipartFile thumbnail,
+            MultipartFile groupPhoto
+    ) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ProjectNotFoundException("Projeto não encontrado."));
+
+        validateUserCanEditProject(projectId);
+
+        if (project.getStatus() != ProjectStatus.EM_ANDAMENTO) {
+            throw new ProjectNotEditableException("Projeto não pode ser editado porque não está em andamento.");
+        }
+
+        if (summary != null) {
+            project.setSummary(summary);
+        }
+
+        if (description != null) {
+            project.setDescription(description);
+        }
+
+        if (thumbnail != null && !thumbnail.isEmpty()) {
+            project.setThumbnailUrl(storeProjectImage(project.getId(), thumbnail, "thumbnail"));
+        }
+
+        if (groupPhoto != null && !groupPhoto.isEmpty()) {
+            project.setGroupPhotoUrl(storeProjectImage(project.getId(), groupPhoto, "group"));
+        }
+
+        Project savedProject = projectRepository.save(project);
+
+        return new ProjectUpdateResponseDto(
+                savedProject.getId(),
+                savedProject.getSummary(),
+                savedProject.getDescription(),
+                resolveProjectImageUrl(savedProject.getThumbnailUrl()),
+                resolveProjectImageUrl(savedProject.getGroupPhotoUrl())
         );
     }
 
@@ -113,8 +182,8 @@ public class ProjectService {
                 team.size(),
                 team,
                 technologies,
-                project.getThumbnailUrl(),
-                project.getGroupPhotoUrl()
+                resolveProjectImageUrl(project.getThumbnailUrl()),
+                resolveProjectImageUrl(project.getGroupPhotoUrl())
         );
     }
 
@@ -172,5 +241,87 @@ public class ProjectService {
                     );
                 })
                 .collect(Collectors.toList());
+    }
+    private void validateUserCanEditProject(Integer projectId) {
+        Integer userId = authenticatedUserService.getUserId();
+
+        StudentProfile studentProfile = studentProfileRepository
+                .findByStudentUserIdAndTeamProjectId(userId, projectId)
+                .orElseThrow(() -> new ProjectAccessDeniedException(
+                        "Usuário autenticado não possui permissão para editar este projeto."
+                ));
+
+        if (!Integer.valueOf(AGES_IV).equals(studentProfile.getAgesPosition())) {
+            throw new ProjectAccessDeniedException(
+                    "Usuário autenticado não possui permissão para editar este projeto."
+            );
+        }
+    }
+
+    private String storeProjectImage(Integer projectId, MultipartFile image, String imageType) {
+        validateProjectImage(image);
+
+        String contentType = image.getContentType();
+        String extension = resolveImageExtension(contentType);
+        String relativePath = "projects/" + projectId + "/" + UUID.randomUUID() + "_" + imageType + extension;
+        String key = s3StorageService.buildKey(relativePath);
+
+        try {
+            s3StorageService.uploadObject(key, contentType, image.getBytes());
+            return S3_REFERENCE_PREFIX + key;
+        } catch (IOException | StorageException e) {
+            throw new ProjectStorageException("Não foi possível salvar imagem do projeto.", e);
+        }
+    }
+
+    private void validateProjectImage(MultipartFile image) {
+        String contentType = image.getContentType();
+
+        if (!StringUtils.hasText(contentType)
+                || !ALLOWED_IMAGE_CONTENT_TYPES.contains(contentType.toLowerCase(Locale.ROOT))) {
+            throw new InvalidProjectImageException("Formato de arquivo inválido.");
+        }
+    }
+
+    private String resolveImageExtension(String contentType) {
+        return switch (contentType.toLowerCase(Locale.ROOT)) {
+            case "image/jpeg", "image/jpg" -> ".jpg";
+            case "image/png" -> ".png";
+            case "image/webp" -> ".webp";
+            default -> throw new InvalidProjectImageException("Formato de arquivo inválido.");
+        };
+    }
+
+    private String resolveProjectImageUrl(String fileReference) {
+        if (!StringUtils.hasText(fileReference)) {
+            return fileReference;
+        }
+
+        if (fileReference.startsWith(S3_REFERENCE_PREFIX)) {
+            String key = fileReference.substring(S3_REFERENCE_PREFIX.length());
+            return createProjectImageAccessUrl(key);
+        }
+
+        if (fileReference.startsWith("/") || looksLikeAbsoluteUrl(fileReference)) {
+            return fileReference;
+        }
+
+        return createProjectImageAccessUrl(fileReference);
+    }
+
+    private String createProjectImageAccessUrl(String key) {
+        try {
+            return s3StorageService.createGetPresignedUrl(key);
+        } catch (StorageException e) {
+            throw new ProjectStorageException("Não foi possível gerar URL de acesso da imagem do projeto.", e);
+        }
+    }
+
+    private boolean looksLikeAbsoluteUrl(String value) {
+        try {
+            return URI.create(value).isAbsolute();
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 }

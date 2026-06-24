@@ -76,7 +76,7 @@ public class SecurityConfig {
                 "http://localhost:5173",
                 "https://main.d2zpuynh3in5i.amplifyapp.com"
         ));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
 
