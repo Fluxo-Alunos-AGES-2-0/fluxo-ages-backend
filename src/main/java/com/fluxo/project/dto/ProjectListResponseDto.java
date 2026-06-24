@@ -13,7 +13,8 @@ public record ProjectListResponseDto(
         Integer agesLevel,
         String gitLabLink,
         Integer membersCount,
-        List<String> technologies,
+        List<ProjectTeamMemberResponseDto> team,
+        List<TechnologyDto> technologies,
         String thumbnailUrl,
         String groupPhotoUrl
 ) {}

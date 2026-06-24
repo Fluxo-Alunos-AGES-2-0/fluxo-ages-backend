@@ -21,7 +21,7 @@ public class Grade {
     @Column(nullable = false)
     private Integer type;
 
-    @Column(nullable = false)
+    @Column(name = "\"value\"", nullable = false)
     private Integer value;
 
     @ManyToOne(optional = false)
