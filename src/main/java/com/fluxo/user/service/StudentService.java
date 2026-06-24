@@ -18,11 +18,12 @@ import com.fluxo.user.exception.InvalidAvatarException;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class StudentService {
+
+    private static final String S3_REFERENCE_PREFIX = "s3:";
 
     private final AuthenticatedUserService authenticatedUserService;
     private final StudentProfileRepository studentProfileRepository;
@@ -119,15 +120,7 @@ public class StudentService {
             throw new RuntimeException("Perfil de estudante não encontrado.");
         }
 
-        String originalFilename = file.getOriginalFilename();
-        String extension = "";
-        if (originalFilename != null && originalFilename.contains(".")) {
-            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-        }
-
-        String key = s3StorageService.buildKey(
-                "uploads/avatars/" + authenticatedUser.getId() + "/" + UUID.randomUUID() + extension
-        );
+        String key = s3StorageService.buildKey("avatar/" + authenticatedUser.getId());
 
         try {
             s3StorageService.uploadObject(key, contentType, file.getBytes());
@@ -135,7 +128,7 @@ public class StudentService {
             throw new RuntimeException("Erro ao ler o arquivo de imagem.", e);
         }
 
-        studentProfile.setImageUrl("s3:" + key);
+        studentProfile.setImageUrl(S3_REFERENCE_PREFIX + key);
         studentProfileRepository.save(studentProfile);
 
         String presignedUrl = s3StorageService.createGetPresignedUrl(key);
