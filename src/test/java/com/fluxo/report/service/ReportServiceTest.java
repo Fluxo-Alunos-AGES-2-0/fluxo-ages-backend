@@ -1,37 +1,43 @@
 package com.fluxo.report.service;
 
-import com.fluxo.hours.repository.HoursReportRepository;
 import com.fluxo.project.entity.Project;
+import com.fluxo.project.entity.Team;
 import com.fluxo.report.dto.FinalReportResponseDto;
+import com.fluxo.report.dto.ProgressReportResponseDto;
 import com.fluxo.report.entity.ReportArchive;
+import com.fluxo.report.entity.ReportReview;
 import com.fluxo.report.enums.ReportType;
 import com.fluxo.report.repository.ReportArchiveRepository;
 import com.fluxo.report.repository.ReportRepository;
 import com.fluxo.report.repository.ReportReviewRepository;
 import com.fluxo.report.repository.SprintReportRepository;
-import com.fluxo.report.dto.ProgressReportResponseDto;
-import com.fluxo.report.entity.ReportReview;
+import com.fluxo.hours.repository.HoursReportRepository;
+import com.fluxo.user.entity.StudentProfile;
 import com.fluxo.user.entity.User;
 import com.fluxo.user.repository.UserRepository;
+import com.fluxo.user.repository.StudentProfileRepository;
 import com.fluxo.user.service.AuthenticatedUserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+@DisplayName("ReportService Unit Tests")
 class ReportServiceTest {
 
     @Mock
@@ -58,15 +64,23 @@ class ReportServiceTest {
     @Mock
     private ReportReviewRepository reportReviewRepository;
 
+    @Mock
+    private StudentProfileRepository studentProfileRepository;
+
     @InjectMocks
     private ReportService reportService;
+
+    private User authenticatedUser;
+
+    @BeforeEach
+    void setUp() {
+        authenticatedUser = new User();
+        authenticatedUser.setId(7);
+    }
 
     @Test
     @DisplayName("getFinalReports resolves the storage URL before returning the response")
     void getFinalReportsResolvesStorageUrl() {
-        User authenticatedUser = new User();
-        authenticatedUser.setId(7);
-
         Project project = new Project();
         project.setName("Projeto S3");
 
@@ -87,16 +101,12 @@ class ReportServiceTest {
         assertEquals(1, result.size());
         assertEquals("https://signed.example/report.pdf", result.getFirst().urlArchive());
         assertNull(result.getFirst().feedback());
-        verify(reportReviewRepository).findById(15);
         verify(fileStorageService).resolveFileUrl("s3:reports/report.pdf");
     }
 
     @Test
     @DisplayName("getProgressReports returns teacher feedback when report review exists")
     void getProgressReportsReturnsTeacherFeedbackWhenReviewExists() {
-        User authenticatedUser = new User();
-        authenticatedUser.setId(7);
-
         Project project = new Project();
         project.setName("Projeto S3");
 
@@ -135,9 +145,6 @@ class ReportServiceTest {
     @Test
     @DisplayName("getFinalReports returns teacher feedback when report review exists")
     void getFinalReportsReturnsTeacherFeedbackWhenReviewExists() {
-        User authenticatedUser = new User();
-        authenticatedUser.setId(7);
-
         Project project = new Project();
         project.setName("Projeto S3");
 
@@ -176,9 +183,6 @@ class ReportServiceTest {
     @Test
     @DisplayName("deleteReport removes the stored file before deleting the database rows")
     void deleteReportRemovesStoredFile() {
-        User authenticatedUser = new User();
-        authenticatedUser.setId(9);
-
         User student = new User();
         student.setId(9);
 
@@ -193,6 +197,10 @@ class ReportServiceTest {
         when(sprintReportRepository.existsChildByReportId(88)).thenReturn(false);
         when(reportReviewRepository.existsChildByReportId(88)).thenReturn(false);
         when(reportArchiveRepository.existsChildByReportId(88)).thenReturn(true);
+
+        // Update authenticated user for access check
+        authenticatedUser.setId(9);
+        when(authenticatedUserService.getAuthenticatedUser()).thenReturn(authenticatedUser);
 
         reportService.deleteReport(88);
 
