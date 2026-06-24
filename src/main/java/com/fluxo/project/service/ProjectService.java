@@ -95,6 +95,7 @@ public class ProjectService {
                 .orElseGet(() -> studentProfileOpt.get().getAgesPosition());
 
         List<ProjectTeamMemberResponseDto> team = buildProjectTeam(project);
+        
         List<TechnologyDto> technologies = extractTechnologies(project);
         User teacher = project.getTeacherUser();
 
@@ -203,16 +204,19 @@ public class ProjectService {
 
     private List<ProjectTeamMemberResponseDto> buildProjectTeam(Project project) {
         Map<Integer, User> usersById = new LinkedHashMap<>();
+        Map<Integer, Integer> agesLevelById = new HashMap<>();
 
-        studentHistoryRepository.findByProject(project)
-                .stream()
-                .map(StudentHistory::getStudentUser)
-                .forEach(user -> usersById.putIfAbsent(user.getId(), user));
+        studentHistoryRepository.findByProject(project).forEach(history -> {
+            User user = history.getStudentUser();
+            usersById.putIfAbsent(user.getId(), user);
+            agesLevelById.putIfAbsent(user.getId(), history.getAgesLevel());
+        });
 
-        studentProfileRepository.findByTeamProjectId(project.getId())
-                .stream()
-                .map(StudentProfile::getStudentUser)
-                .forEach(user -> usersById.putIfAbsent(user.getId(), user));
+        studentProfileRepository.findByTeamProjectId(project.getId()).forEach(profile -> {
+            User user = profile.getStudentUser();
+            usersById.putIfAbsent(user.getId(), user);
+            agesLevelById.put(user.getId(), profile.getAgesPosition());
+        });
 
         if (usersById.isEmpty()) {
             return new ArrayList<>();
@@ -221,20 +225,14 @@ public class ProjectService {
         Map<Integer, StudentProfile> profilesByUserId = studentProfileRepository
                 .findByStudentUserIdIn(usersById.keySet())
                 .stream()
-                .collect(Collectors.toMap(
-                        profile -> profile.getStudentUser().getId(),
-                        profile -> profile,
-                        (first, second) -> first
-                ));
+                .collect(Collectors.toMap(profile -> profile.getStudentUser().getId(), profile -> profile, (first, second) -> first));
 
         return usersById.values()
                 .stream()
                 .map(user -> {
                     StudentProfile profile = profilesByUserId.get(user.getId());
-
-                    String avatarUrl = profile == null ? null : profile.getImageUrl();
-
-                    Integer agesLevel = profile == null ? null : profile.getAgesPosition();
+                    String avatarUrl = (profile != null) ? profile.getImageUrl() : null;
+                    Integer agesLevel = agesLevelById.get(user.getId());
 
                     return new ProjectTeamMemberResponseDto(
                             user.getId(),
