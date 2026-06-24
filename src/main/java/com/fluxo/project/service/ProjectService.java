@@ -234,10 +234,13 @@ public class ProjectService {
 
                     String avatarUrl = profile == null ? null : profile.getImageUrl();
 
+                    Integer agesLevel = profile == null ? null : profile.getAgesPosition();
+
                     return new ProjectTeamMemberResponseDto(
                             user.getId(),
                             user.getName(),
-                            avatarUrl
+                            avatarUrl,
+                            agesLevel
                     );
                 })
                 .collect(Collectors.toList());
