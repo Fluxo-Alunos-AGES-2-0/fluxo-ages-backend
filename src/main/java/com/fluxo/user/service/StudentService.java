@@ -1,19 +1,18 @@
 package com.fluxo.user.service;
 
+import com.fluxo.infra.storage.S3StorageService;
 import com.fluxo.project.entity.Project;
+import com.fluxo.user.dto.AvatarUploadResponseDto;
 import com.fluxo.user.dto.StudentProfileResponseDto;
 import com.fluxo.user.entity.AttendanceRecordStatus;
 import com.fluxo.user.entity.StudentProfile;
 import com.fluxo.user.entity.User;
+import com.fluxo.user.exception.InvalidAvatarException;
 import com.fluxo.user.repository.AttendanceRecordRepository;
 import com.fluxo.user.repository.StudentProfileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
 import org.springframework.web.multipart.MultipartFile;
-import com.fluxo.infra.storage.S3StorageService;
-import com.fluxo.user.dto.AvatarUploadResponseDto;
-import com.fluxo.user.exception.InvalidAvatarException;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -45,9 +44,9 @@ public class StudentService {
         int totalClasses = countAttendanceRecords(authenticatedUser.getId());
 
         String avatarUrl = studentProfile.getImageUrl();
-        if (avatarUrl != null && avatarUrl.startsWith("s3:")) {
+        if (avatarUrl != null && avatarUrl.startsWith(S3_REFERENCE_PREFIX)) {
             try {
-                avatarUrl = s3StorageService.createGetPresignedUrl(avatarUrl.substring(3));
+                avatarUrl = s3StorageService.createGetPresignedUrl(avatarUrl.substring(S3_REFERENCE_PREFIX.length()));
             } catch (Exception e) {
                 // Keep original string if resolution fails
             }
@@ -120,7 +119,7 @@ public class StudentService {
             throw new RuntimeException("Perfil de estudante não encontrado.");
         }
 
-        String key = s3StorageService.buildKey("avatar/" + authenticatedUser.getId());
+        String key = s3StorageService.buildKey("avatar/" + authenticatedUser.getId() + "/avatar");
 
         try {
             s3StorageService.uploadObject(key, contentType, file.getBytes());
