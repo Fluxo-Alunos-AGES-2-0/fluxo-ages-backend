@@ -5,6 +5,7 @@ import java.time.OffsetDateTime;
 public record ReportFeedbackResponseDto(
         String comment,
         String correctionUrl,
-        OffsetDateTime revisionDate
+        OffsetDateTime revisionDate,
+        String teacherName
 ) {
 }
