@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class StudentService {
@@ -124,7 +125,9 @@ public class StudentService {
             extension = originalFilename.substring(originalFilename.lastIndexOf("."));
         }
 
-        String key = "uploads/avatars/" + UUID.randomUUID() + extension;
+        String key = s3StorageService.buildKey(
+                "uploads/avatars/" + authenticatedUser.getId() + "/" + UUID.randomUUID() + extension
+        );
 
         try {
             s3StorageService.uploadObject(key, contentType, file.getBytes());
