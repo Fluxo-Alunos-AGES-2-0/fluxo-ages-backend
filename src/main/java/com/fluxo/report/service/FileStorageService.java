@@ -35,6 +35,21 @@ public class FileStorageService {
         }
     }
 
+    public String createTemplateGetPresignedUrl(Integer agesLevel) {
+        if (agesLevel == null) {
+            throw new IllegalArgumentException("Nível AGES não pode ser nulo.");
+        }
+        String romanNumeral = toRoman(agesLevel);
+        String relativePath = "templates/ages-" + romanNumeral + "-template.docx";
+        String key = s3StorageService.buildKey(relativePath);
+
+        try {
+            return s3StorageService.createGetPresignedUrl(key);
+        } catch (StorageException e) {
+            throw new ReportStorageException("Não foi possível gerar a URL de download para o template.", e);
+        }
+    }
+
     public String resolveFileUrl(String fileReference) {
         if (!StringUtils.hasText(fileReference)) {
             return fileReference;
@@ -119,6 +134,19 @@ public class FileStorageService {
         String ownerSegment = studentId == null ? "unknown" : studentId.toString();
 
         return "reports/" + typeSegment + "/" + ownerSegment;
+    }
+
+    private String toRoman(int number) {
+        if (number < 1 || number > 4) {
+            throw new IllegalArgumentException("Nível AGES inválido para template: " + number);
+        }
+        return switch (number) {
+            case 1 -> "I";
+            case 2 -> "II";
+            case 3 -> "III";
+            case 4 -> "IV";
+            default -> throw new IllegalStateException("Valor inesperado: " + number);
+        };
     }
 
     private boolean looksLikeAbsoluteUrl(String value) {

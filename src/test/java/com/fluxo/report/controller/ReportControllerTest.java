@@ -20,15 +20,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -188,33 +185,29 @@ class ReportControllerTest {
     }
 
     @Test
-    @DisplayName("GET /report/template returns DOCX template for download")
+    @DisplayName("GET /report/template redirects to download URL on success")
     void testDownloadReportTemplateSuccess() throws Exception {
-        byte[] templateBytes = "template content".getBytes(StandardCharsets.UTF_8);
-        Resource templateResource = new ByteArrayResource(templateBytes);
-
-        when(reportTemplateService.loadReportTemplate()).thenReturn(templateResource);
+        String templateUrl = "https://example.com/template.docx";
+        when(reportTemplateService.getTemplateDownloadUrl()).thenReturn(templateUrl);
 
         mockMvc.perform(get("/report/template"))
-                .andExpect(status().isOk())
-                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, "application/vnd.openxmlformats-officedocument.wordprocessingml.document"))
-                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"report-template.docx\""))
-                .andExpect(content().bytes(templateBytes));
+                .andExpect(status().isFound())
+                .andExpect(header().string(HttpHeaders.LOCATION, templateUrl));
 
-        verify(reportTemplateService, times(1)).loadReportTemplate();
+        verify(reportTemplateService, times(1)).getTemplateDownloadUrl();
     }
 
     @Test
     @DisplayName("GET /report/template returns HTTP 404 when template is missing")
     void testDownloadReportTemplateNotFound() throws Exception {
-        when(reportTemplateService.loadReportTemplate())
+        when(reportTemplateService.getTemplateDownloadUrl())
                 .thenThrow(new ReportTemplateNotFoundException("Template de relatório não encontrado."));
 
         mockMvc.perform(get("/report/template"))
                 .andExpect(status().isNotFound())
                 .andDo(print());
 
-        verify(reportTemplateService, times(1)).loadReportTemplate();
+        verify(reportTemplateService, times(1)).getTemplateDownloadUrl();
     }
 
     @Test

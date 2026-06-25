@@ -20,10 +20,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.Resource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -36,6 +33,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -161,20 +159,19 @@ public class ReportController {
         return ResponseEntity.ok(updatedSprintReport);
     }
 
-    @GetMapping(value = "/template", produces = "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
-    @Operation(summary = "Download do template de relatório", description = "Retorna o arquivo DOCX do template de relatório para download")
+    @GetMapping(value = "/template")
+    @Operation(summary = "Download do template de relatório", description = "Redireciona para o download do arquivo DOCX do template de relatório, específico para o nível AGES do aluno.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Template retornado com sucesso"),
+            @ApiResponse(responseCode = "302", description = "Redirecionamento para a URL de download do template."),
             @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
-            @ApiResponse(responseCode = "404", description = "Template não encontrado")
+            @ApiResponse(responseCode = "404", description = "Template não encontrado ou perfil do aluno inválido.")
     })
-    public ResponseEntity<Resource> downloadReportTemplate() {
-        Resource templateFile = reportTemplateService.loadReportTemplate();
+    public ResponseEntity<Void> downloadReportTemplate() {
+        String templateUrl = reportTemplateService.getTemplateDownloadUrl();
 
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.wordprocessingml.document"))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"report-template.docx\"")
-                .body(templateFile);
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .location(URI.create(templateUrl))
+                .build();
     }
 
     @DeleteMapping("/{idReport}")
