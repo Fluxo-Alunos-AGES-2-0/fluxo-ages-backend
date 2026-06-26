@@ -88,6 +88,315 @@ WHERE student_user.email = 'aluno@fluxo.com'
       WHERE sp.id_user_student = student_user.id_user
   );
 
+-- frequencia seedada para alinhar card e modal no dashboard
+INSERT INTO class (date, date_time)
+SELECT DATE '2026-03-13', '19:15 - 20:45'
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM class
+    WHERE date = DATE '2026-03-13'
+      AND date_time = '19:15 - 20:45'
+);
+
+INSERT INTO class (date, date_time)
+SELECT DATE '2026-03-13', '21:00 - 22:30'
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM class
+    WHERE date = DATE '2026-03-13'
+      AND date_time = '21:00 - 22:30'
+);
+
+INSERT INTO class (date, date_time)
+SELECT DATE '2026-03-20', '19:15 - 20:45'
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM class
+    WHERE date = DATE '2026-03-20'
+      AND date_time = '19:15 - 20:45'
+);
+
+INSERT INTO class (date, date_time)
+SELECT DATE '2026-03-20', '21:00 - 22:30'
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM class
+    WHERE date = DATE '2026-03-20'
+      AND date_time = '21:00 - 22:30'
+);
+
+INSERT INTO class (date, date_time)
+SELECT DATE '2026-03-27', '19:15 - 20:45'
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM class
+    WHERE date = DATE '2026-03-27'
+      AND date_time = '19:15 - 20:45'
+);
+
+INSERT INTO class (date, date_time)
+SELECT DATE '2026-03-27', '21:00 - 22:30'
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM class
+    WHERE date = DATE '2026-03-27'
+      AND date_time = '21:00 - 22:30'
+);
+
+INSERT INTO lesson_session (date, id_class, id_user_teacher)
+SELECT DATE '2026-03-13', class_seed.id_class, teacher_user.id_user
+FROM class class_seed
+JOIN "user" teacher_user ON teacher_user.email = 'professor@fluxo.com'
+WHERE class_seed.date = DATE '2026-03-13'
+  AND class_seed.date_time = '19:15 - 20:45'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM lesson_session lesson_session_seed
+      WHERE lesson_session_seed.date = DATE '2026-03-13'
+        AND lesson_session_seed.id_class = class_seed.id_class
+        AND lesson_session_seed.id_user_teacher = teacher_user.id_user
+  );
+
+INSERT INTO lesson_session (date, id_class, id_user_teacher)
+SELECT DATE '2026-03-13', class_seed.id_class, teacher_user.id_user
+FROM class class_seed
+JOIN "user" teacher_user ON teacher_user.email = 'professor@fluxo.com'
+WHERE class_seed.date = DATE '2026-03-13'
+  AND class_seed.date_time = '21:00 - 22:30'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM lesson_session lesson_session_seed
+      WHERE lesson_session_seed.date = DATE '2026-03-13'
+        AND lesson_session_seed.id_class = class_seed.id_class
+        AND lesson_session_seed.id_user_teacher = teacher_user.id_user
+  );
+
+INSERT INTO lesson_session (date, id_class, id_user_teacher)
+SELECT DATE '2026-03-20', class_seed.id_class, teacher_user.id_user
+FROM class class_seed
+JOIN "user" teacher_user ON teacher_user.email = 'professor@fluxo.com'
+WHERE class_seed.date = DATE '2026-03-20'
+  AND class_seed.date_time = '19:15 - 20:45'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM lesson_session lesson_session_seed
+      WHERE lesson_session_seed.date = DATE '2026-03-20'
+        AND lesson_session_seed.id_class = class_seed.id_class
+        AND lesson_session_seed.id_user_teacher = teacher_user.id_user
+  );
+
+INSERT INTO lesson_session (date, id_class, id_user_teacher)
+SELECT DATE '2026-03-20', class_seed.id_class, teacher_user.id_user
+FROM class class_seed
+JOIN "user" teacher_user ON teacher_user.email = 'professor@fluxo.com'
+WHERE class_seed.date = DATE '2026-03-20'
+  AND class_seed.date_time = '21:00 - 22:30'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM lesson_session lesson_session_seed
+      WHERE lesson_session_seed.date = DATE '2026-03-20'
+        AND lesson_session_seed.id_class = class_seed.id_class
+        AND lesson_session_seed.id_user_teacher = teacher_user.id_user
+  );
+
+INSERT INTO lesson_session (date, id_class, id_user_teacher)
+SELECT DATE '2026-03-27', class_seed.id_class, teacher_user.id_user
+FROM class class_seed
+JOIN "user" teacher_user ON teacher_user.email = 'professor@fluxo.com'
+WHERE class_seed.date = DATE '2026-03-27'
+  AND class_seed.date_time = '19:15 - 20:45'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM lesson_session lesson_session_seed
+      WHERE lesson_session_seed.date = DATE '2026-03-27'
+        AND lesson_session_seed.id_class = class_seed.id_class
+        AND lesson_session_seed.id_user_teacher = teacher_user.id_user
+  );
+
+INSERT INTO lesson_session (date, id_class, id_user_teacher)
+SELECT DATE '2026-03-27', class_seed.id_class, teacher_user.id_user
+FROM class class_seed
+JOIN "user" teacher_user ON teacher_user.email = 'professor@fluxo.com'
+WHERE class_seed.date = DATE '2026-03-27'
+  AND class_seed.date_time = '21:00 - 22:30'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM lesson_session lesson_session_seed
+      WHERE lesson_session_seed.date = DATE '2026-03-27'
+        AND lesson_session_seed.id_class = class_seed.id_class
+        AND lesson_session_seed.id_user_teacher = teacher_user.id_user
+  );
+
+INSERT INTO attendance_record (id_attendance, status, id_lesson_session, id_user_student)
+SELECT 'AT260313A1', 'PRESENTE', lesson_session_seed.id_lesson_session, student_user.id_user
+FROM lesson_session lesson_session_seed
+JOIN class class_seed ON class_seed.id_class = lesson_session_seed.id_class
+JOIN "user" student_user ON student_user.email = 'aluno@fluxo.com'
+WHERE lesson_session_seed.date = DATE '2026-03-13'
+  AND class_seed.date_time = '19:15 - 20:45'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM attendance_record attendance_record_seed
+      WHERE attendance_record_seed.id_user_student = student_user.id_user
+        AND attendance_record_seed.id_lesson_session = lesson_session_seed.id_lesson_session
+  );
+
+INSERT INTO attendance_record (id_attendance, status, id_lesson_session, id_user_student)
+SELECT 'AT260313A2', 'PRESENTE', lesson_session_seed.id_lesson_session, student_user.id_user
+FROM lesson_session lesson_session_seed
+JOIN class class_seed ON class_seed.id_class = lesson_session_seed.id_class
+JOIN "user" student_user ON student_user.email = 'aluno@fluxo.com'
+WHERE lesson_session_seed.date = DATE '2026-03-13'
+  AND class_seed.date_time = '21:00 - 22:30'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM attendance_record attendance_record_seed
+      WHERE attendance_record_seed.id_user_student = student_user.id_user
+        AND attendance_record_seed.id_lesson_session = lesson_session_seed.id_lesson_session
+  );
+
+INSERT INTO attendance_record (id_attendance, status, id_lesson_session, id_user_student)
+SELECT 'AT260320B1', 'AUSENTE', lesson_session_seed.id_lesson_session, student_user.id_user
+FROM lesson_session lesson_session_seed
+JOIN class class_seed ON class_seed.id_class = lesson_session_seed.id_class
+JOIN "user" student_user ON student_user.email = 'aluno@fluxo.com'
+WHERE lesson_session_seed.date = DATE '2026-03-20'
+  AND class_seed.date_time = '19:15 - 20:45'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM attendance_record attendance_record_seed
+      WHERE attendance_record_seed.id_user_student = student_user.id_user
+        AND attendance_record_seed.id_lesson_session = lesson_session_seed.id_lesson_session
+  );
+
+INSERT INTO attendance_record (id_attendance, status, id_lesson_session, id_user_student)
+SELECT 'AT260320B2', 'AUSENTE', lesson_session_seed.id_lesson_session, student_user.id_user
+FROM lesson_session lesson_session_seed
+JOIN class class_seed ON class_seed.id_class = lesson_session_seed.id_class
+JOIN "user" student_user ON student_user.email = 'aluno@fluxo.com'
+WHERE lesson_session_seed.date = DATE '2026-03-20'
+  AND class_seed.date_time = '21:00 - 22:30'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM attendance_record attendance_record_seed
+      WHERE attendance_record_seed.id_user_student = student_user.id_user
+        AND attendance_record_seed.id_lesson_session = lesson_session_seed.id_lesson_session
+  );
+
+INSERT INTO attendance_record (id_attendance, status, id_lesson_session, id_user_student)
+SELECT 'AT260327C1', 'PRESENTE', lesson_session_seed.id_lesson_session, student_user.id_user
+FROM lesson_session lesson_session_seed
+JOIN class class_seed ON class_seed.id_class = lesson_session_seed.id_class
+JOIN "user" student_user ON student_user.email = 'aluno@fluxo.com'
+WHERE lesson_session_seed.date = DATE '2026-03-27'
+  AND class_seed.date_time = '19:15 - 20:45'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM attendance_record attendance_record_seed
+      WHERE attendance_record_seed.id_user_student = student_user.id_user
+        AND attendance_record_seed.id_lesson_session = lesson_session_seed.id_lesson_session
+  );
+
+INSERT INTO attendance_record (id_attendance, status, id_lesson_session, id_user_student)
+SELECT 'AT260327C2', 'PRESENTE', lesson_session_seed.id_lesson_session, student_user.id_user
+FROM lesson_session lesson_session_seed
+JOIN class class_seed ON class_seed.id_class = lesson_session_seed.id_class
+JOIN "user" student_user ON student_user.email = 'aluno@fluxo.com'
+WHERE lesson_session_seed.date = DATE '2026-03-27'
+  AND class_seed.date_time = '21:00 - 22:30'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM attendance_record attendance_record_seed
+      WHERE attendance_record_seed.id_user_student = student_user.id_user
+        AND attendance_record_seed.id_lesson_session = lesson_session_seed.id_lesson_session
+  );
+
+INSERT INTO class (date, date_time)
+SELECT attendance_seed.slot_date, attendance_seed.slot_time
+FROM (
+    VALUES
+        (DATE '2026-04-03', '19:15 - 20:45'),
+        (DATE '2026-04-03', '21:00 - 22:30'),
+        (DATE '2026-04-10', '19:15 - 20:45'),
+        (DATE '2026-04-10', '21:00 - 22:30'),
+        (DATE '2026-04-17', '19:15 - 20:45'),
+        (DATE '2026-04-17', '21:00 - 22:30'),
+        (DATE '2026-04-24', '19:15 - 20:45'),
+        (DATE '2026-04-24', '21:00 - 22:30'),
+        (DATE '2026-05-08', '19:15 - 20:45'),
+        (DATE '2026-05-08', '21:00 - 22:30'),
+        (DATE '2026-05-15', '19:15 - 20:45'),
+        (DATE '2026-05-15', '21:00 - 22:30')
+) AS attendance_seed(slot_date, slot_time)
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM class class_seed
+    WHERE class_seed.date = attendance_seed.slot_date
+      AND class_seed.date_time = attendance_seed.slot_time
+);
+
+INSERT INTO lesson_session (date, id_class, id_user_teacher)
+SELECT attendance_seed.slot_date, class_seed.id_class, teacher_user.id_user
+FROM (
+    VALUES
+        (DATE '2026-04-03', '19:15 - 20:45'),
+        (DATE '2026-04-03', '21:00 - 22:30'),
+        (DATE '2026-04-10', '19:15 - 20:45'),
+        (DATE '2026-04-10', '21:00 - 22:30'),
+        (DATE '2026-04-17', '19:15 - 20:45'),
+        (DATE '2026-04-17', '21:00 - 22:30'),
+        (DATE '2026-04-24', '19:15 - 20:45'),
+        (DATE '2026-04-24', '21:00 - 22:30'),
+        (DATE '2026-05-08', '19:15 - 20:45'),
+        (DATE '2026-05-08', '21:00 - 22:30'),
+        (DATE '2026-05-15', '19:15 - 20:45'),
+        (DATE '2026-05-15', '21:00 - 22:30')
+) AS attendance_seed(slot_date, slot_time)
+JOIN class class_seed
+    ON class_seed.date = attendance_seed.slot_date
+   AND class_seed.date_time = attendance_seed.slot_time
+JOIN "user" teacher_user
+    ON teacher_user.email = 'professor@fluxo.com'
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM lesson_session lesson_session_seed
+    WHERE lesson_session_seed.date = attendance_seed.slot_date
+      AND lesson_session_seed.id_class = class_seed.id_class
+      AND lesson_session_seed.id_user_teacher = teacher_user.id_user
+);
+
+INSERT INTO attendance_record (id_attendance, status, id_lesson_session, id_user_student)
+SELECT attendance_seed.attendance_id, attendance_seed.status, lesson_session_seed.id_lesson_session, student_user.id_user
+FROM (
+    VALUES
+        ('AT260403D1', DATE '2026-04-03', '19:15 - 20:45', 'PRESENTE'),
+        ('AT260403D2', DATE '2026-04-03', '21:00 - 22:30', 'PRESENTE'),
+        ('AT260410E1', DATE '2026-04-10', '19:15 - 20:45', 'PRESENTE'),
+        ('AT260410E2', DATE '2026-04-10', '21:00 - 22:30', 'AUSENTE'),
+        ('AT260417F1', DATE '2026-04-17', '19:15 - 20:45', 'PRESENTE'),
+        ('AT260417F2', DATE '2026-04-17', '21:00 - 22:30', 'PRESENTE'),
+        ('AT260424G1', DATE '2026-04-24', '19:15 - 20:45', 'AUSENTE'),
+        ('AT260424G2', DATE '2026-04-24', '21:00 - 22:30', 'PRESENTE'),
+        ('AT260508H1', DATE '2026-05-08', '19:15 - 20:45', 'PRESENTE'),
+        ('AT260508H2', DATE '2026-05-08', '21:00 - 22:30', 'PRESENTE'),
+        ('AT260515I1', DATE '2026-05-15', '19:15 - 20:45', 'AUSENTE'),
+        ('AT260515I2', DATE '2026-05-15', '21:00 - 22:30', 'PRESENTE')
+) AS attendance_seed(attendance_id, slot_date, slot_time, status)
+JOIN class class_seed
+    ON class_seed.date = attendance_seed.slot_date
+   AND class_seed.date_time = attendance_seed.slot_time
+JOIN lesson_session lesson_session_seed
+    ON lesson_session_seed.date = attendance_seed.slot_date
+   AND lesson_session_seed.id_class = class_seed.id_class
+JOIN "user" student_user
+    ON student_user.email = 'aluno@fluxo.com'
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM attendance_record attendance_record_seed
+    WHERE attendance_record_seed.id_user_student = student_user.id_user
+      AND attendance_record_seed.id_lesson_session = lesson_session_seed.id_lesson_session
+);
+
 -- hours reports para testar historico e filtro por projeto
 INSERT INTO report (type, create_date, edit_date, grade, id_user_student, id_project)
 SELECT

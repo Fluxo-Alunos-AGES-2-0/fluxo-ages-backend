@@ -1,5 +1,6 @@
 package com.fluxo.user.controller;
 
+import com.fluxo.user.dto.AttendanceHistoryResponseDto;
 import com.fluxo.user.dto.StudentProfileResponseDto;
 import com.fluxo.user.service.StudentService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,6 +32,16 @@ public class StudentController {
         return studentService.getLoggedStudentProfile()
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/me/attendance")
+    @Operation(summary = "Obter histórico de frequência", description = "Retorna o detalhamento das presenças do estudante autenticado")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Histórico de frequência retornado com sucesso"),
+        @ApiResponse(responseCode = "401", description = "Não autorizado")
+    })
+    public ResponseEntity<AttendanceHistoryResponseDto> getLoggedStudentAttendanceHistory() {
+        return ResponseEntity.ok(studentService.getLoggedStudentAttendanceHistory());
     }
 
     @PutMapping(value = "/me/avatar", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)

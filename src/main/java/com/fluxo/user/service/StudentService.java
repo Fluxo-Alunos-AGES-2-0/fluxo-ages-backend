@@ -2,8 +2,10 @@ package com.fluxo.user.service;
 
 import com.fluxo.infra.storage.S3StorageService;
 import com.fluxo.project.entity.Project;
+import com.fluxo.user.dto.AttendanceHistoryResponseDto;
 import com.fluxo.user.dto.AvatarUploadResponseDto;
 import com.fluxo.user.dto.StudentProfileResponseDto;
+import com.fluxo.user.entity.AttendanceRecord;
 import com.fluxo.user.entity.AttendanceRecordStatus;
 import com.fluxo.user.entity.StudentProfile;
 import com.fluxo.user.entity.User;
@@ -15,6 +17,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -74,6 +81,34 @@ public class StudentService {
         ));
     }
 
+    public AttendanceHistoryResponseDto getLoggedStudentAttendanceHistory() {
+        User authenticatedUser = authenticatedUserService.getAuthenticatedUser();
+        List<AttendanceRecord> records = attendanceRecordRepository.findDetailedByStudentUserId(authenticatedUser.getId());
+
+        Map<LocalDate, List<AttendanceHistoryResponseDto.AttendanceSlotDto>> groupedByDate = new LinkedHashMap<>();
+
+        for (AttendanceRecord record : records) {
+            LocalDate date = record.getLessonSession().getDate();
+            String time = resolveAttendanceTime(record);
+
+            groupedByDate.computeIfAbsent(date, ignored -> new ArrayList<>())
+                    .add(new AttendanceHistoryResponseDto.AttendanceSlotDto(
+                            time,
+                            record.getStatus().name()
+                    ));
+        }
+
+        List<AttendanceHistoryResponseDto.AttendanceDayDto> days = groupedByDate.entrySet()
+                .stream()
+                .map(entry -> new AttendanceHistoryResponseDto.AttendanceDayDto(
+                        entry.getKey().toString(),
+                        entry.getValue()
+                ))
+                .toList();
+
+        return new AttendanceHistoryResponseDto(days);
+    }
+
     private StudentProfile findStudentProfileByUserId(Integer userId) {
         return studentProfileRepository.findByStudentUserId(userId).orElse(null);
     }
@@ -95,6 +130,15 @@ public class StudentService {
 
     private int countAttendanceRecords(Integer userId) {
         return attendanceRecordRepository.countByStudentUserId(userId);
+    }
+
+    private String resolveAttendanceTime(AttendanceRecord record) {
+        String dateTime = record.getLessonSession().getClassGroup().getDateTime();
+        if (dateTime == null || dateTime.isBlank()) {
+            return "Horário não informado";
+        }
+
+        return dateTime.trim();
     }
 
     public AvatarUploadResponseDto updateAvatar(MultipartFile file) {
