@@ -49,7 +49,7 @@ public class StorageReferenceResolver {
         try {
             URI uri = URI.create(reference);
             String configuredBucket = normalizeBucket(storageProperties.getS3().getBucket());
-            String bucket = normalizeBucket(uri.getHost());
+            String bucket = normalizeBucket(StringUtils.hasText(uri.getHost()) ? uri.getHost() : uri.getAuthority());
             String key = s3StorageService.normalizePath(uri.getPath());
 
             if (!StringUtils.hasText(bucket) || !StringUtils.hasText(key)) {
