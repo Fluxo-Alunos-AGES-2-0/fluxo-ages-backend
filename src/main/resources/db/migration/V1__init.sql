@@ -257,9 +257,9 @@ CREATE TABLE public.report_review (
 
 CREATE TABLE public.schedule (
     id_schedule integer NOT NULL,
-    event character(10) NOT NULL,
+    event character varying(255) NOT NULL,
     event_date date NOT NULL,
-    event_period character(10) NOT NULL,
+    event_period character varying(20) NOT NULL,
     event_time time(0) without time zone NOT NULL
 );
 
