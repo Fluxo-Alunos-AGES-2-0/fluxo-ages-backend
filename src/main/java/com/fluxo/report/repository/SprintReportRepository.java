@@ -21,15 +21,28 @@ public interface SprintReportRepository extends JpaRepository<SprintReport, Inte
             ReportType type
     );
 
+    Optional<SprintReport> findByStudentUserIdAndProjectIdAndSprint(
+            Integer studentUserId,
+            Integer projectId,
+            String sprint
+    );
+
     List<SprintReport> findByStudentUserIdAndType(
             Integer studentUserId,
             ReportType type
     );
 
+    List<SprintReport> findByStudentUserId(Integer studentUserId);
+
     List<SprintReport> findByStudentUserIdAndProjectIdAndType(
             Integer studentUserId,
             Integer projectId,
             ReportType type
+    );
+
+    List<SprintReport> findByStudentUserIdAndProjectId(
+            Integer studentUserId,
+            Integer projectId
     );
 
     @Modifying

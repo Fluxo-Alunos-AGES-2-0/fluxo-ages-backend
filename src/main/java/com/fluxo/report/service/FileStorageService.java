@@ -3,11 +3,14 @@ package com.fluxo.report.service;
 import com.fluxo.infra.exception.StorageException;
 import com.fluxo.infra.storage.S3StorageService;
 import com.fluxo.report.enums.ReportType;
+import com.fluxo.report.exception.InvalidReportFileException;
 import com.fluxo.report.exception.ReportStorageException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.Locale;
 import java.util.UUID;
@@ -18,8 +21,38 @@ public class FileStorageService {
 
     private static final String S3_REFERENCE_PREFIX = "s3:";
     private static final String PDF_CONTENT_TYPE = "application/pdf";
+    private static final long MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
 
     private final S3StorageService s3StorageService;
+
+    public record UploadTarget(String uploadUrl, String fileReference, String method, String contentType) {
+    }
+
+    public String uploadFile(MultipartFile file, ReportType reportType, Integer studentId) {
+        if (file.isEmpty()) {
+            throw new InvalidReportFileException("Arquivo não pode estar vazio.");
+        }
+
+        String contentType = file.getContentType();
+        if (!PDF_CONTENT_TYPE.equals(contentType)) {
+            throw new InvalidReportFileException("Arquivo deve ser do tipo PDF.");
+        }
+
+        if (file.getSize() > MAX_FILE_SIZE) {
+            throw new InvalidReportFileException("Arquivo não pode exceder 25MB.");
+        }
+
+        String key = s3StorageService.buildKey(buildReportRelativePath(reportType, studentId));
+
+        try {
+            s3StorageService.uploadFile(key, file.getInputStream(), contentType, file.getSize());
+            return S3_REFERENCE_PREFIX + key;
+        } catch (IOException e) {
+            throw new ReportStorageException("Erro ao fazer upload do arquivo.", e);
+        } catch (StorageException e) {
+            throw new ReportStorageException("Não foi possível fazer upload do arquivo para o S3.", e);
+        }
+    }
 
     public record UploadTarget(String uploadUrl, String fileReference, String method, String contentType) {
     }

@@ -51,6 +51,21 @@ public class S3StorageService {
         }
     }
 
+    public void uploadFile(String key, java.io.InputStream inputStream, String contentType, long contentLength) {
+        try {
+            s3Client.putObject(
+                    PutObjectRequest.builder()
+                            .bucket(storageProperties.getS3().getBucket())
+                            .key(key)
+                            .contentType(contentType)
+                            .build(),
+                    RequestBody.fromInputStream(inputStream, contentLength)
+            );
+        } catch (RuntimeException e) {
+            throw new StorageException("Não foi possível salvar o arquivo no S3.", e);
+        }
+    }
+
     public String createPutPresignedUrl(String key, String contentType) {
         try {
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
