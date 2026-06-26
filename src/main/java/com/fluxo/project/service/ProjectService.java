@@ -1,39 +1,44 @@
 package com.fluxo.project.service;
 
-import com.fluxo.project.dto.ProjectListResponseDto;
-import com.fluxo.project.entity.Project;
-import com.fluxo.user.entity.StudentHistory;
-import com.fluxo.user.repository.StudentHistoryRepository;
-import com.fluxo.user.service.AuthenticatedUserService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
-import com.fluxo.project.dto.ProjectDetailsResponseDto;
-import com.fluxo.project.dto.ProjectTeacherResponseDto;
-import com.fluxo.project.dto.ProjectTeamMemberResponseDto;
-import com.fluxo.project.dto.TechnologyDto;
-import com.fluxo.project.exception.ProjectNotFoundException;
-import com.fluxo.user.entity.StudentProfile;
-import com.fluxo.user.entity.User;
-import com.fluxo.user.repository.StudentProfileRepository;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.fluxo.infra.exception.StorageException;
 import com.fluxo.infra.storage.S3StorageService;
+import com.fluxo.infra.storage.StorageReferenceResolver;
+import com.fluxo.project.dto.ProjectDetailsResponseDto;
+import com.fluxo.project.dto.ProjectListResponseDto;
+import com.fluxo.project.dto.ProjectTeamMemberResponseDto;
+import com.fluxo.project.dto.ProjectTeacherResponseDto;
 import com.fluxo.project.dto.ProjectUpdateResponseDto;
+import com.fluxo.project.dto.TechnologyDto;
+import com.fluxo.project.entity.Project;
 import com.fluxo.project.entity.ProjectStatus;
 import com.fluxo.project.exception.InvalidProjectImageException;
 import com.fluxo.project.exception.ProjectAccessDeniedException;
 import com.fluxo.project.exception.ProjectNotEditableException;
+import com.fluxo.project.exception.ProjectNotFoundException;
 import com.fluxo.project.exception.ProjectStorageException;
 import com.fluxo.project.repository.ProjectRepository;
+import com.fluxo.user.entity.StudentHistory;
+import com.fluxo.user.entity.StudentProfile;
+import com.fluxo.user.entity.User;
+import com.fluxo.user.repository.StudentHistoryRepository;
+import com.fluxo.user.repository.StudentProfileRepository;
+import com.fluxo.user.service.AuthenticatedUserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.net.URI;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,18 +53,20 @@ public class ProjectService {
             "image/png",
             "image/webp"
     );
+
     private final StudentHistoryRepository studentHistoryRepository;
     private final StudentProfileRepository studentProfileRepository;
     private final AuthenticatedUserService authenticatedUserService;
     private final ProjectRepository projectRepository;
     private final S3StorageService s3StorageService;
+    private final StorageReferenceResolver storageReferenceResolver;
 
+    @Transactional(readOnly = true)
     public List<ProjectListResponseDto> getMyProjects() {
         Integer userId = authenticatedUserService.getUserId();
 
         List<StudentHistory> userHistories = studentHistoryRepository.findByStudentUserIdOrderByRecent(userId);
 
-        // Deduplica projetos e mantém ordem dos mais recentes
         Map<Integer, StudentHistory> uniqueProjectsMap = new LinkedHashMap<>();
         for (StudentHistory history : userHistories) {
             if (history.getProject() != null) {
@@ -95,7 +102,6 @@ public class ProjectService {
                 .orElseGet(() -> studentProfileOpt.get().getAgesPosition());
 
         List<ProjectTeamMemberResponseDto> team = buildProjectTeam(project);
-        
         List<TechnologyDto> technologies = extractTechnologies(project);
         User teacher = project.getTeacherUser();
 
@@ -146,11 +152,21 @@ public class ProjectService {
         }
 
         if (thumbnail != null && !thumbnail.isEmpty()) {
-            project.setThumbnailUrl(storeProjectImage(project.getId(), thumbnail, "thumbnail"));
+            project.setThumbnailUrl(storeProjectImage(
+                    project.getId(),
+                    thumbnail,
+                    "thumbnail",
+                    project.getThumbnailUrl()
+            ));
         }
 
         if (groupPhoto != null && !groupPhoto.isEmpty()) {
-            project.setGroupPhotoUrl(storeProjectImage(project.getId(), groupPhoto, "group"));
+            project.setGroupPhotoUrl(storeProjectImage(
+                    project.getId(),
+                    groupPhoto,
+                    "groupPhoto",
+                    project.getGroupPhotoUrl()
+            ));
         }
 
         Project savedProject = projectRepository.save(project);
@@ -166,7 +182,7 @@ public class ProjectService {
 
     private ProjectListResponseDto convertToDto(StudentHistory studentHistory) {
         Project project = studentHistory.getProject();
-        
+
         List<ProjectTeamMemberResponseDto> team = buildProjectTeam(project);
         List<TechnologyDto> technologies = extractTechnologies(project);
 
@@ -192,12 +208,12 @@ public class ProjectService {
         if (project.getTechnologies() == null || project.getTechnologies().isEmpty()) {
             return new ArrayList<>();
         }
-        
+
         return project.getTechnologies().stream()
                 .map(tech -> new TechnologyDto(
                         tech.getId(),
                         tech.getName(),
-                        tech.getIconUrl() // <-- Agora o ícone vai junto!
+                        resolveTechnologyIconUrl(tech.getIconUrl())
                 ))
                 .toList();
     }
@@ -225,13 +241,17 @@ public class ProjectService {
         Map<Integer, StudentProfile> profilesByUserId = studentProfileRepository
                 .findByStudentUserIdIn(usersById.keySet())
                 .stream()
-                .collect(Collectors.toMap(profile -> profile.getStudentUser().getId(), profile -> profile, (first, second) -> first));
+                .collect(Collectors.toMap(
+                        profile -> profile.getStudentUser().getId(),
+                        profile -> profile,
+                        (first, second) -> first
+                ));
 
         return usersById.values()
                 .stream()
                 .map(user -> {
                     StudentProfile profile = profilesByUserId.get(user.getId());
-                    String avatarUrl = (profile != null) ? profile.getImageUrl() : null;
+                    String avatarUrl = profile != null ? profile.getImageUrl() : null;
                     Integer agesLevel = agesLevelById.get(user.getId());
 
                     return new ProjectTeamMemberResponseDto(
@@ -243,6 +263,7 @@ public class ProjectService {
                 })
                 .collect(Collectors.toList());
     }
+
     private void validateUserCanEditProject(Integer projectId) {
         Integer userId = authenticatedUserService.getUserId();
 
@@ -259,20 +280,51 @@ public class ProjectService {
         }
     }
 
-    private String storeProjectImage(Integer projectId, MultipartFile image, String imageType) {
+    private String storeProjectImage(
+            Integer projectId,
+            MultipartFile image,
+            String imageType,
+            String currentFileReference
+    ) {
         validateProjectImage(image);
 
         String contentType = image.getContentType();
         String extension = resolveImageExtension(contentType);
-        String relativePath = "projects/" + projectId + "/" + UUID.randomUUID() + "_" + imageType + extension;
+        String relativePath = buildProjectImageRelativePath(projectId, imageType, extension);
         String key = s3StorageService.buildKey(relativePath);
+        Optional<String> previousKey = extractManagedProjectImageKey(currentFileReference);
 
         try {
             s3StorageService.uploadObject(key, contentType, image.getBytes());
+
+            if (previousKey.isPresent() && !previousKey.get().equals(key)) {
+                s3StorageService.deleteObject(previousKey.get());
+            }
+
             return S3_REFERENCE_PREFIX + key;
         } catch (IOException | StorageException e) {
             throw new ProjectStorageException("Não foi possível salvar imagem do projeto.", e);
         }
+    }
+
+    private String buildProjectImageRelativePath(Integer projectId, String imageType, String extension) {
+        return "projects/" + projectId + "/" + imageType + "/" + imageType + extension;
+    }
+
+    private Optional<String> extractManagedProjectImageKey(String fileReference) {
+        if (!StringUtils.hasText(fileReference)) {
+            return Optional.empty();
+        }
+
+        if (fileReference.startsWith(S3_REFERENCE_PREFIX)) {
+            return Optional.of(s3StorageService.normalizePath(fileReference.substring(S3_REFERENCE_PREFIX.length())));
+        }
+
+        if (fileReference.startsWith("/") || looksLikeAbsoluteUrl(fileReference)) {
+            return Optional.empty();
+        }
+
+        return Optional.of(s3StorageService.normalizePath(fileReference));
     }
 
     private void validateProjectImage(MultipartFile image) {
@@ -298,23 +350,22 @@ public class ProjectService {
             return fileReference;
         }
 
-        if (fileReference.startsWith(S3_REFERENCE_PREFIX)) {
-            String key = fileReference.substring(S3_REFERENCE_PREFIX.length());
-            return createProjectImageAccessUrl(key);
+        try {
+            return storageReferenceResolver.resolveForDisplay(fileReference);
+        } catch (StorageException e) {
+            throw new ProjectStorageException("Não foi possível gerar URL de acesso da imagem do projeto.", e);
         }
+    }
 
-        if (fileReference.startsWith("/") || looksLikeAbsoluteUrl(fileReference)) {
+    private String resolveTechnologyIconUrl(String fileReference) {
+        if (!StringUtils.hasText(fileReference)) {
             return fileReference;
         }
 
-        return createProjectImageAccessUrl(fileReference);
-    }
-
-    private String createProjectImageAccessUrl(String key) {
         try {
-            return s3StorageService.createGetPresignedUrl(key);
+            return storageReferenceResolver.resolveForDisplay(fileReference);
         } catch (StorageException e) {
-            throw new ProjectStorageException("Não foi possível gerar URL de acesso da imagem do projeto.", e);
+            throw new ProjectStorageException("Não foi possível gerar URL de acesso do ícone da tecnologia.", e);
         }
     }
 

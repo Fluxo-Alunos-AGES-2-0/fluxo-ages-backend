@@ -10,7 +10,14 @@ import java.util.List;
 public interface StudentHistoryRepository extends JpaRepository<StudentHistory, Integer> {
     List<StudentHistory> findByStudentUserId(Integer userId);
 
-    @Query("SELECT sh FROM StudentHistory sh WHERE sh.studentUser.id = :userId ORDER BY sh.semesterYear DESC")
+    @Query("""
+            SELECT DISTINCT sh
+            FROM StudentHistory sh
+            JOIN FETCH sh.project p
+            LEFT JOIN FETCH p.technologies
+            WHERE sh.studentUser.id = :userId
+            ORDER BY sh.semesterYear DESC
+            """)
     List<StudentHistory> findByStudentUserIdOrderByRecent(Integer userId);
     
     List<StudentHistory> findByProject(Project project);
