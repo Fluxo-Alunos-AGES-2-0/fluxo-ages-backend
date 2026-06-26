@@ -1,6 +1,7 @@
 package com.fluxo.project.service;
 
 import com.fluxo.infra.storage.S3StorageService;
+import com.fluxo.infra.storage.StorageReferenceResolver;
 import com.fluxo.project.entity.Project;
 import com.fluxo.project.entity.ProjectStatus;
 import com.fluxo.project.repository.ProjectRepository;
@@ -43,6 +44,9 @@ class ProjectServiceTest {
     @Mock
     private S3StorageService s3StorageService;
 
+    @Mock
+    private StorageReferenceResolver storageReferenceResolver;
+
     @InjectMocks
     private ProjectService projectService;
 
@@ -61,6 +65,7 @@ class ProjectServiceTest {
         when(studentProfileRepository.findByStudentUserIdAndTeamProjectId(7, 10)).thenReturn(Optional.of(profile));
         when(authenticatedUserService.getUserId()).thenReturn(7);
         when(s3StorageService.buildKey(anyString())).thenAnswer(invocation -> "dev/" + invocation.getArgument(0));
+        when(s3StorageService.normalizePath(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
         when(projectRepository.save(project)).thenReturn(project);
 
         projectService.updateProject(10, null, null, thumbnail, null);
@@ -90,6 +95,7 @@ class ProjectServiceTest {
         when(studentProfileRepository.findByStudentUserIdAndTeamProjectId(7, 10)).thenReturn(Optional.of(profile));
         when(authenticatedUserService.getUserId()).thenReturn(7);
         when(s3StorageService.buildKey(anyString())).thenAnswer(invocation -> "dev/" + invocation.getArgument(0));
+        when(s3StorageService.normalizePath(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
         when(projectRepository.save(project)).thenReturn(project);
 
         projectService.updateProject(10, null, null, null, groupPhoto);

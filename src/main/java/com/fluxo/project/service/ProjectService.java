@@ -30,6 +30,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -38,7 +39,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -365,6 +365,14 @@ public class ProjectService {
             return storageReferenceResolver.resolveForDisplay(fileReference);
         } catch (StorageException e) {
             throw new ProjectStorageException("Não foi possível gerar URL de acesso do ícone da tecnologia.", e);
+        }
+    }
+
+    private boolean looksLikeAbsoluteUrl(String value) {
+        try {
+            return URI.create(value).isAbsolute();
+        } catch (IllegalArgumentException e) {
+            return false;
         }
     }
 }
