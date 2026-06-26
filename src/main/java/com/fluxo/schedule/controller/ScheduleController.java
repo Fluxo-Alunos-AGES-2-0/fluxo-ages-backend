@@ -16,6 +16,12 @@ import java.util.Map;
 @Tag(name = "5. Agendamentos", description = "Endpoints para gerenciamento de agendamentos e horários")
 public class ScheduleController {
 
+    private final com.fluxo.schedule.service.ScheduleService scheduleService;
+
+    public ScheduleController(com.fluxo.schedule.service.ScheduleService scheduleService) {
+        this.scheduleService = scheduleService;
+    }
+
     @GetMapping("/schedule")
     @Operation(summary = "Listar agendamentos", description = "Retorna uma lista de horários/agendamentos")
     @ApiResponses(value = {
@@ -29,14 +35,16 @@ public class ScheduleController {
             return ResponseEntity.badRequest().body(Map.of("error", "Parâmetro diaTurno é obrigatório e não pode ser vazio"));
         }
 
-        List<com.fluxo.schedule.dto.ScheduleResponseDTO> events = List.of(
-            new com.fluxo.schedule.dto.ScheduleResponseDTO(1, "Apresentação da Sprint 3 para stakeholders e planning da Sprint 4", "2025-06-05", "19:00 - 22:30", diaTurno),
-            new com.fluxo.schedule.dto.ScheduleResponseDTO(2, "Retrospectiva da Sprint 3 + Entrega do Relatório da Sprint 3 no Fluxo AGES", "2025-06-05", "19:00 - 22:30", diaTurno),
-            new com.fluxo.schedule.dto.ScheduleResponseDTO(3, "Desenvolvimento da Sprint 4", "2025-06-12", "19:00 - 22:30", diaTurno),
-            new com.fluxo.schedule.dto.ScheduleResponseDTO(4, "Sem aula, VAI BRASIL!!!", "2025-06-19", "19:00 - 22:30", diaTurno),
-            new com.fluxo.schedule.dto.ScheduleResponseDTO(5, "Entrega FINAL do Projeto + Retrospectiva do Projeto e o mais importante: PIZZA", "2025-06-26", "19:00 - 22:30", diaTurno),
-            new com.fluxo.schedule.dto.ScheduleResponseDTO(6, "Apresentação dos Projetos AGES para todos os times + Escolha do projeto destaque", "2025-07-03", "19:00 - 22:30", diaTurno)
-        );
+        List<com.fluxo.schedule.entity.Schedule> scheduleList = scheduleService.listScheduleByPeriod(diaTurno);
+        
+        List<com.fluxo.schedule.dto.ScheduleResponseDTO> events = scheduleList.stream()
+            .map(s -> new com.fluxo.schedule.dto.ScheduleResponseDTO(
+                    s.getId(),
+                    s.getEvent(),
+                    s.getEventDate().toString(),
+                    s.getEventTime().toString(),
+                    s.getEventPeriod()
+            )).toList();
 
         return ResponseEntity.ok(events);
     }
