@@ -61,6 +61,7 @@ public class ProjectService {
     private final S3StorageService s3StorageService;
     private final StorageReferenceResolver storageReferenceResolver;
 
+    @Transactional(readOnly = true)
     public List<ProjectListResponseDto> getMyProjects() {
         Integer userId = authenticatedUserService.getUserId();
 

@@ -2,10 +2,15 @@ package com.fluxo.project.service;
 
 import com.fluxo.infra.storage.S3StorageService;
 import com.fluxo.infra.storage.StorageReferenceResolver;
+import com.fluxo.project.dto.ProjectListResponseDto;
 import com.fluxo.project.entity.Project;
 import com.fluxo.project.entity.ProjectStatus;
+import com.fluxo.project.entity.Technology;
 import com.fluxo.project.repository.ProjectRepository;
+import com.fluxo.user.entity.StudentHistory;
 import com.fluxo.user.entity.StudentProfile;
+import com.fluxo.user.entity.StudentStatus;
+import com.fluxo.user.entity.User;
 import com.fluxo.user.repository.StudentHistoryRepository;
 import com.fluxo.user.repository.StudentProfileRepository;
 import com.fluxo.user.service.AuthenticatedUserService;
@@ -18,10 +23,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.anyCollection;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -49,6 +58,66 @@ class ProjectServiceTest {
 
     @InjectMocks
     private ProjectService projectService;
+
+    @Test
+    @DisplayName("getMyProjects deduplicates repeated histories and returns preloaded technologies")
+    void getMyProjectsDeduplicatesRepeatedHistoriesAndReturnsPreloadedTechnologies() {
+        User currentUser = new User();
+        currentUser.setId(7);
+        currentUser.setName("Aluno");
+
+        Technology java = new Technology();
+        java.setId(1);
+        java.setName("Java");
+
+        Technology spring = new Technology();
+        spring.setId(2);
+        spring.setName("Spring");
+
+        Project project = new Project();
+        project.setId(10);
+        project.setName("Projeto Fluxo");
+        project.setStatus(ProjectStatus.EM_ANDAMENTO);
+        project.setPeriod("MANHA");
+        project.setSemesterYear("2026/1");
+        project.setTechnologies(Set.of(java, spring));
+
+        StudentHistory latestHistory = new StudentHistory();
+        latestHistory.setProject(project);
+        latestHistory.setStudentUser(currentUser);
+        latestHistory.setStudentStatus(StudentStatus.REGULAR);
+        latestHistory.setAgesLevel(4);
+
+        StudentHistory olderHistory = new StudentHistory();
+        olderHistory.setProject(project);
+        olderHistory.setStudentUser(currentUser);
+        olderHistory.setStudentStatus(StudentStatus.REGULAR);
+        olderHistory.setAgesLevel(3);
+
+        StudentProfile profile = new StudentProfile();
+        profile.setStudentUser(currentUser);
+        profile.setAgesPosition(4);
+
+        when(authenticatedUserService.getUserId()).thenReturn(7);
+        when(studentHistoryRepository.findByStudentUserIdOrderByRecent(7))
+                .thenReturn(List.of(latestHistory, olderHistory));
+        when(studentHistoryRepository.findByProject(project))
+                .thenReturn(List.of(latestHistory, olderHistory));
+        when(studentProfileRepository.findByTeamProjectId(10))
+                .thenReturn(List.of(profile));
+        when(studentProfileRepository.findByStudentUserIdIn(anyCollection()))
+                .thenReturn(List.of(profile));
+
+        List<ProjectListResponseDto> response = projectService.getMyProjects();
+
+        assertEquals(1, response.size());
+        assertEquals(10, response.getFirst().id());
+        assertEquals(1, response.getFirst().team().size());
+        assertIterableEquals(
+                List.of("Java", "Spring"),
+                response.getFirst().technologies().stream().map(tech -> tech.name()).sorted().toList()
+        );
+    }
 
     @Test
     @DisplayName("updateProject stores thumbnail in a dedicated folder and removes the previous file when the key changes")
