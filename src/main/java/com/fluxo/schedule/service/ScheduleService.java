@@ -16,6 +16,6 @@ public class ScheduleService {
     }
 
     public List<Schedule> listScheduleByPeriod(String eventPeriod) {
-        return scheduleRepository.findByEventPeriod(eventPeriod);
+        return scheduleRepository.findByEventPeriodOrderByEventDateAscEventTimeAsc(eventPeriod);
     }
 }

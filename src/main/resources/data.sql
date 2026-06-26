@@ -714,9 +714,9 @@ WHERE NOT EXISTS (
 
 -- Seed de Agendamentos (US007)
 INSERT INTO schedule (event, event_date, event_time, event_period) VALUES
-('Apresentação da Sprint 3 para stakeholders e planning da Sprint 4', '2025-06-05', '19:00:00', 'LMNP_SEX'),
-('Retrospectiva da Sprint 3 + Entrega do Relatório da Sprint 3 no Fluxo AGES', '2025-06-05', '19:00:00', 'LMNP_SEX'),
-('Desenvolvimento da Sprint 4', '2025-06-12', '19:00:00', 'LMNP_SEX'),
-('Sem aula, VAI BRASIL!!!', '2025-06-19', '19:00:00', 'LMNP_SEX'),
-('Entrega FINAL do Projeto + Retrospectiva do Projeto e o mais importante: PIZZA', '2025-06-26', '19:00:00', 'LMNP_SEX'),
-('Apresentação dos Projetos AGES para todos os times + Escolha do projeto destaque', '2025-07-03', '19:00:00', 'LMNP_SEX');
+('Apresentação da Sprint 3 para stakeholders e planning da Sprint 4', '2026-06-29', '19:00:00', 'LM_SEGQUA'),
+('Retrospectiva da Sprint 3 + Entrega do Relatório da Sprint 3 no Fluxo AGES', '2026-07-01', '19:00:00', 'LM_SEGQUA'),
+('Desenvolvimento da Sprint 4', '2026-07-08', '19:00:00', 'JK_SEGQUA'),
+('Sem aula, VAI BRASIL!!!', '2026-07-02', '19:00:00', 'JK_TERQUI'),
+('Entrega FINAL do Projeto + Retrospectiva do Projeto e o mais importante: PIZZA', '2026-07-03', '19:00:00', 'LMNP_SEXTA'),
+('Apresentação dos Projetos AGES para todos os times + Escolha do projeto destaque', '2026-07-06', '19:00:00', 'LM_SEGQUA');
