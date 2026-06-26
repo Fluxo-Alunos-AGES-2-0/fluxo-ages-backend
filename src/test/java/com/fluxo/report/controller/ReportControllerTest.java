@@ -136,7 +136,8 @@ class ReportControllerTest {
                 new ReportFeedbackResponseDto(
                         "Excellent work",
                         "http://example.com/correction1.pdf",
-                        OffsetDateTime.of(2024, 1, 20, 10, 0, 0, 0, ZoneOffset.UTC)
+                        OffsetDateTime.of(2024, 1, 20, 10, 0, 0, 0, ZoneOffset.UTC),
+                        "Joao Almeida Severo"
                 )
         );
         FinalReportResponseDto report2 = new FinalReportResponseDto(
@@ -148,7 +149,8 @@ class ReportControllerTest {
                 new ReportFeedbackResponseDto(
                         "Outstanding performance",
                         "http://example.com/correction2.pdf",
-                        OffsetDateTime.of(2024, 2, 20, 10, 0, 0, 0, ZoneOffset.UTC)
+                        OffsetDateTime.of(2024, 2, 20, 10, 0, 0, 0, ZoneOffset.UTC),
+                        "Joao Almeida Severo"
                 )
         );
 
@@ -227,7 +229,8 @@ class ReportControllerTest {
                 new ReportFeedbackResponseDto(
                         "Good progress",
                         "http://example.com/prog-correction1.pdf",
-                        OffsetDateTime.of(2024, 1, 12, 10, 0, 0, 0, ZoneOffset.UTC)
+                        OffsetDateTime.of(2024, 1, 12, 10, 0, 0, 0, ZoneOffset.UTC),
+                        "Joao Almeida Severo"
                 )
         );
         ProgressReportResponseDto report2 = new ProgressReportResponseDto(
@@ -239,7 +242,8 @@ class ReportControllerTest {
                 new ReportFeedbackResponseDto(
                         "Very good progress",
                         "http://example.com/prog-correction2.pdf",
-                        OffsetDateTime.of(2024, 2, 12, 10, 0, 0, 0, ZoneOffset.UTC)
+                        OffsetDateTime.of(2024, 2, 12, 10, 0, 0, 0, ZoneOffset.UTC),
+                        "Joao Almeida Severo"
                 )
         );
 

@@ -98,7 +98,7 @@ public class ReportService {
                         report instanceof ReportArchive reportArchive
                                 ? fileStorageService.resolveFileUrl(reportArchive.getUrlArchive())
                                 : null,
-                        buildFeedback(report.getId())
+                        buildFeedback(report.getId(), report.getProject())
                 ))
                 .toList();
     }
@@ -117,7 +117,7 @@ public class ReportService {
                         report instanceof ReportArchive reportArchive
                                 ? fileStorageService.resolveFileUrl(reportArchive.getUrlArchive())
                                 : null,
-                        buildFeedback(report.getId())
+                        buildFeedback(report.getId(), report.getProject())
                 ))
                 .toList();
     }
@@ -208,7 +208,10 @@ public class ReportService {
                 .map(reportReview -> new ReportFeedbackResponseDto(
                         reportReview.getComment(),
                         fileStorageService.resolveFileUrl(reportReview.getCorrectionUrl()),
-                        reportReview.getRevisionDate()
+                        reportReview.getRevisionDate(),
+                        project != null && project.getTeacherUser() != null
+                                ? project.getTeacherUser().getName()
+                                : null
                 ))
                 .orElse(null);
     }

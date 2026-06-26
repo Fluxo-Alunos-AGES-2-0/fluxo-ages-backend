@@ -1,9 +1,9 @@
 package com.fluxo.auth.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -17,25 +17,28 @@ public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
 
-    private static final String EMAIL_FROM = "pucrsages@gmail.com";
+    @Value("${app.email.from}")
+    private String emailFrom;
+
+    @Value("${app.frontend.base-url}")
+    private String frontendBaseUrl;
 
     public void sendPasswordResetEmail(String to, String token) {
         String subject = "Redefinição de senha";
         String body = "Clique no link abaixo para redefinir sua senha:\n\n"
-                + "http://localhost:5173/reset-password?token=" + token;
+                + buildResetPasswordUrl(token);
 
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         message.setSubject(subject);
         message.setText(body);
-        message.setFrom(EMAIL_FROM);
+        message.setFrom(emailFrom);
 
         mailSender.send(message);
 
         System.out.println("E-mail enviado com sucesso para: " + to);
     }
 
-    @Async
     public void sendHoursStartedEmail(String to, String studentName, Instant entryTime) {
         String subject = "Início de Registro de Horas";
         
@@ -52,14 +55,13 @@ public class EmailService {
         message.setTo(to);
         message.setSubject(subject);
         message.setText(body);
-        message.setFrom(EMAIL_FROM);
+        message.setFrom(emailFrom);
 
         mailSender.send(message);
 
         System.out.println("E-mail de início de horas enviado com sucesso para: " + to);
     }
     
-    @Async
     public void sendHoursStoppedEmail(String to, String studentName, Instant entryTime, Instant exitTime, Integer totalTimeSeconds, String activities) {
         String subject = "Encerramento de Registro de Horas";
 
@@ -86,10 +88,14 @@ public class EmailService {
         message.setTo(to);
         message.setSubject(subject);
         message.setText(body);
-        message.setFrom(EMAIL_FROM);
+        message.setFrom(emailFrom);
 
         mailSender.send(message);
 
         System.out.println("E-mail de encerramento de horas enviado com sucesso para: " + to);
+    }
+
+    private String buildResetPasswordUrl(String token) {
+        return frontendBaseUrl.replaceAll("/$", "") + "/reset-password?token=" + token;
     }
 }
