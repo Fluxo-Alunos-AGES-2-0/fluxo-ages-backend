@@ -251,7 +251,9 @@ public class ProjectService {
                 .stream()
                 .map(user -> {
                     StudentProfile profile = profilesByUserId.get(user.getId());
-                    String avatarUrl = profile != null ? profile.getImageUrl() : null;
+                    String avatarUrl = profile != null
+                            ? resolveTeamMemberAvatarUrl(profile.getImageUrl())
+                            : null;
                     Integer agesLevel = agesLevelById.get(user.getId());
 
                     return new ProjectTeamMemberResponseDto(
@@ -262,6 +264,18 @@ public class ProjectService {
                     );
                 })
                 .collect(Collectors.toList());
+    }
+
+    private String resolveTeamMemberAvatarUrl(String fileReference) {
+        if (!StringUtils.hasText(fileReference)) {
+            return fileReference;
+        }
+
+        try {
+            return storageReferenceResolver.resolveForDisplay(fileReference);
+        } catch (StorageException e) {
+            throw new ProjectStorageException("Não foi possível gerar URL de acesso do avatar do integrante.", e);
+        }
     }
 
     private void validateUserCanEditProject(Integer projectId) {

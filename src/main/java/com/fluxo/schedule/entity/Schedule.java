@@ -15,7 +15,7 @@ public class Schedule {
     @Column(name = "id_schedule")
     private Integer id;
 
-    @Column(nullable = false, length = 10, columnDefinition = "char(10)")
+    @Column(nullable = false, length = 255)
     private String event;
 
     @Column(name = "event_date", nullable = false)
@@ -24,6 +24,6 @@ public class Schedule {
     @Column(name = "event_time", nullable = false)
     private LocalTime eventTime;
 
-    @Column(name = "event_period", nullable = false, length = 10, columnDefinition = "char(10)")
+    @Column(name = "event_period", nullable = false, length = 20)
     private String eventPeriod;
 }

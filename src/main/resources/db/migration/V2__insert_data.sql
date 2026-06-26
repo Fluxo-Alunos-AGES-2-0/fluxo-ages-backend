@@ -73,7 +73,7 @@ WHERE project_seed.name = 'Projeto Exemplo Secundario'
 
 INSERT INTO student_profile (ages_position, course, image_url, id_user_student, id_team)
 SELECT
-    3,
+    4,
     'Computacao',
     '/uploads/avatars/aluno.png',
     student_user.id_user,
@@ -661,7 +661,7 @@ WHERE student_user.email = 'aluno@fluxo.com'
 
 INSERT INTO report_review (id_report, comment, correction_url, revision_date)
 SELECT r.id_report,
-    'Boa entrega final. O projeto atingiu os objetivos propostos com qualidade satisfatÃ³ria.',
+    'Boa entrega final. O projeto atingiu os objetivos propostos com qualidade satisfatoria.',
     'https://drive.com/rf-edutrack',
     TIMESTAMPTZ '2025-12-02 10:00:00+00'
 FROM report r JOIN "user" u ON u.id_user = r.id_user_student JOIN project p ON p.id_project = r.id_project
