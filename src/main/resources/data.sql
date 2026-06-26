@@ -75,7 +75,7 @@ INSERT INTO student_profile (ages_position, course, image_url, id_user_student, 
 SELECT
     4,
     'Computacao',
-    '/uploads/avatars/aluno.png',
+    'https://i.pravatar.cc/300?img=12',
     student_user.id_user,
     team_seed.id_team
 FROM "user" student_user

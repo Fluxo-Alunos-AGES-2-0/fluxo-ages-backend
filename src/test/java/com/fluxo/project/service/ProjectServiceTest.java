@@ -120,6 +120,46 @@ class ProjectServiceTest {
     }
 
     @Test
+    @DisplayName("getMyProjects resolves team member avatar URLs for display")
+    void getMyProjectsResolvesTeamMemberAvatarUrlsForDisplay() {
+        User currentUser = new User();
+        currentUser.setId(7);
+        currentUser.setName("Aluno");
+
+        Project project = new Project();
+        project.setId(10);
+        project.setName("Projeto Fluxo");
+        project.setStatus(ProjectStatus.EM_ANDAMENTO);
+
+        StudentHistory history = new StudentHistory();
+        history.setProject(project);
+        history.setStudentUser(currentUser);
+        history.setStudentStatus(StudentStatus.REGULAR);
+        history.setAgesLevel(4);
+
+        StudentProfile profile = new StudentProfile();
+        profile.setStudentUser(currentUser);
+        profile.setAgesPosition(4);
+        profile.setImageUrl("s3:dev/avatar/7/avatar");
+
+        when(authenticatedUserService.getUserId()).thenReturn(7);
+        when(studentHistoryRepository.findByStudentUserIdOrderByRecent(7))
+                .thenReturn(List.of(history));
+        when(studentHistoryRepository.findByProject(project))
+                .thenReturn(List.of(history));
+        when(studentProfileRepository.findByTeamProjectId(10))
+                .thenReturn(List.of(profile));
+        when(studentProfileRepository.findByStudentUserIdIn(anyCollection()))
+                .thenReturn(List.of(profile));
+        when(storageReferenceResolver.resolveForDisplay("s3:dev/avatar/7/avatar"))
+                .thenReturn("https://cdn.example.com/avatar-7.png");
+
+        List<ProjectListResponseDto> response = projectService.getMyProjects();
+
+        assertEquals("https://cdn.example.com/avatar-7.png", response.getFirst().team().getFirst().avatarUrl());
+    }
+
+    @Test
     @DisplayName("updateProject stores thumbnail in a dedicated folder and removes the previous file when the key changes")
     void updateProjectStoresThumbnailInDedicatedFolderAndRemovesPreviousFile() throws IOException {
         Project project = buildEditableProject();
