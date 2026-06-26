@@ -146,11 +146,21 @@ public class ProjectService {
         }
 
         if (thumbnail != null && !thumbnail.isEmpty()) {
-            project.setThumbnailUrl(storeProjectImage(project.getId(), thumbnail, "thumbnail"));
+            project.setThumbnailUrl(storeProjectImage(
+                    project.getId(),
+                    thumbnail,
+                    "thumbnail",
+                    project.getThumbnailUrl()
+            ));
         }
 
         if (groupPhoto != null && !groupPhoto.isEmpty()) {
-            project.setGroupPhotoUrl(storeProjectImage(project.getId(), groupPhoto, "group"));
+            project.setGroupPhotoUrl(storeProjectImage(
+                    project.getId(),
+                    groupPhoto,
+                    "groupPhoto",
+                    project.getGroupPhotoUrl()
+            ));
         }
 
         Project savedProject = projectRepository.save(project);
@@ -259,20 +269,51 @@ public class ProjectService {
         }
     }
 
-    private String storeProjectImage(Integer projectId, MultipartFile image, String imageType) {
+    private String storeProjectImage(
+            Integer projectId,
+            MultipartFile image,
+            String imageType,
+            String currentFileReference
+    ) {
         validateProjectImage(image);
 
         String contentType = image.getContentType();
         String extension = resolveImageExtension(contentType);
-        String relativePath = "projects/" + projectId + "/" + UUID.randomUUID() + "_" + imageType + extension;
+        String relativePath = buildProjectImageRelativePath(projectId, imageType, extension);
         String key = s3StorageService.buildKey(relativePath);
+        Optional<String> previousKey = extractManagedProjectImageKey(currentFileReference);
 
         try {
             s3StorageService.uploadObject(key, contentType, image.getBytes());
+
+            if (previousKey.isPresent() && !previousKey.get().equals(key)) {
+                s3StorageService.deleteObject(previousKey.get());
+            }
+
             return S3_REFERENCE_PREFIX + key;
         } catch (IOException | StorageException e) {
             throw new ProjectStorageException("Não foi possível salvar imagem do projeto.", e);
         }
+    }
+
+    private String buildProjectImageRelativePath(Integer projectId, String imageType, String extension) {
+        return "projects/" + projectId + "/" + imageType + "/" + imageType + extension;
+    }
+
+    private Optional<String> extractManagedProjectImageKey(String fileReference) {
+        if (!StringUtils.hasText(fileReference)) {
+            return Optional.empty();
+        }
+
+        if (fileReference.startsWith(S3_REFERENCE_PREFIX)) {
+            return Optional.of(s3StorageService.normalizePath(fileReference.substring(S3_REFERENCE_PREFIX.length())));
+        }
+
+        if (fileReference.startsWith("/") || looksLikeAbsoluteUrl(fileReference)) {
+            return Optional.empty();
+        }
+
+        return Optional.of(s3StorageService.normalizePath(fileReference));
     }
 
     private void validateProjectImage(MultipartFile image) {
