@@ -11,8 +11,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ScheduleResponseDTO {
     private Integer id;
-    private String event;
-    private String eventDate;
-    private String eventTime;
+    private String title;
+    private String date;
+    private String time;
     private String eventPeriod;
 }

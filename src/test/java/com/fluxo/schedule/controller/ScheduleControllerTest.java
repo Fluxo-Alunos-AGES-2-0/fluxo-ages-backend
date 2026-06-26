@@ -90,9 +90,9 @@ class ScheduleControllerTest {
         mockMvc.perform(get("/schedule").param("diaTurno", "LM_SEGQUA"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(1))
-                .andExpect(jsonPath("$[0].event").value("Apresentacao da Sprint 3 para stakeholders e planning da Sprint 4"))
-                .andExpect(jsonPath("$[0].eventDate").value("2025-06-05"))
-                .andExpect(jsonPath("$[0].eventTime").value("19:00"))
+                .andExpect(jsonPath("$[0].title").value("Apresentacao da Sprint 3 para stakeholders e planning da Sprint 4"))
+                .andExpect(jsonPath("$[0].date").value("2025-06-05"))
+                .andExpect(jsonPath("$[0].time").value("19:00"))
                 .andExpect(jsonPath("$[0].eventPeriod").value("LM_SEGQUA"));
 
         verify(scheduleService).listScheduleByPeriod("LM_SEGQUA");

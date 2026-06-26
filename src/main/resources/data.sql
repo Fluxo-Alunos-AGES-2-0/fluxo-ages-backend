@@ -713,10 +713,81 @@ WHERE NOT EXISTS (
 );
 
 -- Seed de Agendamentos (US007)
-INSERT INTO schedule (event, event_date, event_time, event_period) VALUES
-('Apresentação da Sprint 3 para stakeholders e planning da Sprint 4', '2026-06-29', '19:00:00', 'LM_SEGQUA'),
-('Retrospectiva da Sprint 3 + Entrega do Relatório da Sprint 3 no Fluxo AGES', '2026-07-01', '19:00:00', 'LM_SEGQUA'),
-('Desenvolvimento da Sprint 4', '2026-07-08', '19:00:00', 'JK_SEGQUA'),
-('Sem aula, VAI BRASIL!!!', '2026-07-02', '19:00:00', 'JK_TERQUI'),
-('Entrega FINAL do Projeto + Retrospectiva do Projeto e o mais importante: PIZZA', '2026-07-03', '19:00:00', 'LMNP_SEXTA'),
-('Apresentação dos Projetos AGES para todos os times + Escolha do projeto destaque', '2026-07-06', '19:00:00', 'LM_SEGQUA');
+INSERT INTO schedule (event, event_date, event_time, event_period)
+SELECT seeded_schedule.event,
+       seeded_schedule.event_date,
+       seeded_schedule.event_time,
+       seeded_schedule.event_period
+FROM (
+    VALUES
+        ('Apresentação da AGES, projetos, orientadores e equipes. Apresentação e integração da equipe.', DATE '2026-03-02', TIME '17:30:00', 'JK_SEGQUA'),
+        ('Apresentação pelo professor orientador do processo da AGES e do projeto. Preparação para a reunião com stakeholders.', DATE '2026-03-04', TIME '17:30:00', 'JK_SEGQUA'),
+        ('Apresentação do projeto pelos stakeholders', DATE '2026-03-09', TIME '17:30:00', 'JK_SEGQUA'),
+        ('Sprint 0 - Planejamento de user stories e dos mockups', DATE '2026-03-11', TIME '17:30:00', 'JK_SEGQUA'),
+        ('Sprint 0 - Planejamento de user stories e dos mockups', DATE '2026-03-16', TIME '17:30:00', 'JK_SEGQUA'),
+        ('Sprint 0 - Planejamento de user stories e dos mockups', DATE '2026-03-18', TIME '17:30:00', 'JK_SEGQUA'),
+        ('Sprint 0 - Planejamento de user stories e dos mockups', DATE '2026-03-23', TIME '17:30:00', 'JK_SEGQUA'),
+        ('Apresentação das user stories e mockups para os stakeholders e planning da Sprint 1', DATE '2026-03-25', TIME '17:30:00', 'JK_SEGQUA'),
+        ('Desenvolvimento da Sprint 1', DATE '2026-03-30', TIME '17:30:00', 'JK_SEGQUA'),
+        ('Desenvolvimento da Sprint 1', DATE '2026-04-01', TIME '17:30:00', 'JK_SEGQUA'),
+        ('Revisão interna de backlog e refinamento da Sprint 1', DATE '2026-04-06', TIME '17:30:00', 'JK_SEGQUA'),
+        ('Apresentação da Sprint 1 para stakeholders e planning da Sprint 2', DATE '2026-04-08', TIME '17:30:00', 'JK_SEGQUA'),
+        ('Desenvolvimento da Sprint 2', DATE '2026-04-13', TIME '17:30:00', 'JK_SEGQUA'),
+        ('Desenvolvimento da Sprint 2', DATE '2026-04-15', TIME '17:30:00', 'JK_SEGQUA'),
+        ('Retrospectiva da Sprint 2 + ajustes de backlog', DATE '2026-04-20', TIME '17:30:00', 'JK_SEGQUA'),
+        ('Apresentação da Sprint 2 para stakeholders e planning da Sprint 3', DATE '2026-04-22', TIME '17:30:00', 'JK_SEGQUA'),
+        ('Desenvolvimento da Sprint 3', DATE '2026-04-27', TIME '17:30:00', 'JK_SEGQUA'),
+        ('Desenvolvimento da Sprint 3', DATE '2026-04-29', TIME '17:30:00', 'JK_SEGQUA'),
+        ('Workshop de arquitetura e integrações', DATE '2026-05-04', TIME '17:30:00', 'JK_SEGQUA'),
+        ('Apresentação da Sprint 3 para stakeholders e planning da Sprint 4', DATE '2026-05-06', TIME '17:30:00', 'JK_SEGQUA'),
+        ('Desenvolvimento da Sprint 4', DATE '2026-05-11', TIME '17:30:00', 'JK_SEGQUA'),
+        ('Desenvolvimento da Sprint 4', DATE '2026-05-13', TIME '17:30:00', 'JK_SEGQUA'),
+        ('Refinamento final e checklist de entrega', DATE '2026-05-18', TIME '17:30:00', 'JK_SEGQUA'),
+        ('Entrega da Sprint 4 e retrospectiva', DATE '2026-05-20', TIME '17:30:00', 'JK_SEGQUA'),
+        ('Desenvolvimento da Sprint 4', DATE '2026-06-18', TIME '17:30:00', 'JK_TERQUI'),
+        ('Entrega FINAL do Projeto + Retrospectiva do Projeto + Entrega do Relatório da Sprint 4 no Fluxo AGES', DATE '2026-06-23', TIME '17:30:00', 'JK_TERQUI'),
+        ('Retrospectiva GERAL AGES + Presença obrigatória + Entrega do Relatório Final (RF)', DATE '2026-06-25', TIME '17:30:00', 'JK_TERQUI'),
+        ('Apresentação dos Projetos AGES para todos os times + Escolha do projeto destaque', DATE '2026-06-30', TIME '17:30:00', 'JK_TERQUI'),
+        ('Reuniões one-to-one', DATE '2026-07-02', TIME '17:30:00', 'JK_TERQUI'),
+        ('Reuniões one-to-one', DATE '2026-07-07', TIME '17:30:00', 'JK_TERQUI'),
+        ('Reuniões one-to-one', DATE '2026-07-09', TIME '17:30:00', 'JK_TERQUI'),
+        ('Acompanhamento de pendências pós-entrega', DATE '2026-07-14', TIME '17:30:00', 'JK_TERQUI'),
+        ('Revisão final de documentação e memorial', DATE '2026-07-16', TIME '17:30:00', 'JK_TERQUI'),
+        ('Mentoria técnica com orientadores', DATE '2026-07-21', TIME '17:30:00', 'JK_TERQUI'),
+        ('Sessão de feedback com stakeholders', DATE '2026-07-23', TIME '17:30:00', 'JK_TERQUI'),
+        ('Planejamento de melhorias contínuas', DATE '2026-07-28', TIME '17:30:00', 'JK_TERQUI'),
+        ('Apresentação interna de lições aprendidas', DATE '2026-07-30', TIME '17:30:00', 'JK_TERQUI'),
+        ('Apresentação da Sprint 3 para stakeholders e planning da Sprint 4', DATE '2026-06-29', TIME '19:00:00', 'LM_SEGQUA'),
+        ('Retrospectiva da Sprint 3 + Entrega do Relatório da Sprint 3 no Fluxo AGES', DATE '2026-07-01', TIME '19:00:00', 'LM_SEGQUA'),
+        ('Apresentação dos Projetos AGES para todos os times + Escolha do projeto destaque', DATE '2026-07-06', TIME '19:00:00', 'LM_SEGQUA'),
+        ('Planejamento da Sprint 4 e alinhamento com orientadores', DATE '2026-07-08', TIME '19:00:00', 'LM_SEGQUA'),
+        ('Desenvolvimento da Sprint 4', DATE '2026-07-13', TIME '19:00:00', 'LM_SEGQUA'),
+        ('Desenvolvimento da Sprint 4', DATE '2026-07-15', TIME '19:00:00', 'LM_SEGQUA'),
+        ('Revisão técnica do projeto e checklist de entrega', DATE '2026-07-20', TIME '19:00:00', 'LM_SEGQUA'),
+        ('Apresentação parcial de progresso para stakeholders', DATE '2026-07-22', TIME '19:00:00', 'LM_SEGQUA'),
+        ('Ajustes finais do projeto', DATE '2026-07-27', TIME '19:00:00', 'LM_SEGQUA'),
+        ('Retrospectiva da Sprint 4 + preparação de entrega final', DATE '2026-07-29', TIME '19:00:00', 'LM_SEGQUA'),
+        ('Entrega de documentação complementar', DATE '2026-08-03', TIME '19:00:00', 'LM_SEGQUA'),
+        ('Ensaio de apresentação final', DATE '2026-08-05', TIME '19:00:00', 'LM_SEGQUA'),
+        ('Apresentação final para banca interna', DATE '2026-08-10', TIME '19:00:00', 'LM_SEGQUA'),
+        ('Revisão de feedback da banca', DATE '2026-08-12', TIME '19:00:00', 'LM_SEGQUA'),
+        ('Planejamento de encerramento e checklist final', DATE '2026-08-17', TIME '19:00:00', 'LM_SEGQUA'),
+        ('Entrega consolidada de artefatos', DATE '2026-08-19', TIME '19:00:00', 'LM_SEGQUA'),
+        ('Entrega FINAL do Projeto + Retrospectiva do Projeto e o mais importante: PIZZA', DATE '2026-07-03', TIME '19:00:00', 'LMNP_SEXTA'),
+        ('Sexta de acompanhamento com LM/NP', DATE '2026-07-10', TIME '19:00:00', 'LMNP_SEXTA'),
+        ('Checkpoint semanal de pendências', DATE '2026-07-17', TIME '19:00:00', 'LMNP_SEXTA'),
+        ('Acompanhamento de relatórios e entregas', DATE '2026-07-24', TIME '19:00:00', 'LMNP_SEXTA'),
+        ('Fechamento de sprint e próximos passos', DATE '2026-07-31', TIME '19:00:00', 'LMNP_SEXTA'),
+        ('Planejamento de agosto com LM/NP', DATE '2026-08-07', TIME '19:00:00', 'LMNP_SEXTA'),
+        ('Sessão de revisão de entregas da semana', DATE '2026-08-14', TIME '19:00:00', 'LMNP_SEXTA'),
+        ('Acompanhamento de ajustes finais', DATE '2026-08-21', TIME '19:00:00', 'LMNP_SEXTA'),
+        ('Retrospectiva de encerramento do ciclo', DATE '2026-08-28', TIME '19:00:00', 'LMNP_SEXTA')
+) AS seeded_schedule(event, event_date, event_time, event_period)
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM schedule existing_schedule
+    WHERE existing_schedule.event = seeded_schedule.event
+      AND existing_schedule.event_date = seeded_schedule.event_date
+      AND existing_schedule.event_time = seeded_schedule.event_time
+      AND existing_schedule.event_period = seeded_schedule.event_period
+);
