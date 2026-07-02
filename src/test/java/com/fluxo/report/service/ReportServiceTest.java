@@ -1,6 +1,7 @@
 package com.fluxo.report.service;
 
 import com.fluxo.hours.repository.HoursReportRepository;
+import com.fluxo.infra.storage.StorageReferenceResolver;
 import com.fluxo.project.entity.Project;
 import com.fluxo.report.dto.FinalReportResponseDto;
 import com.fluxo.report.entity.ReportArchive;
@@ -57,6 +58,9 @@ class ReportServiceTest {
 
     @Mock
     private ReportReviewRepository reportReviewRepository;
+
+    @Mock
+    private StorageReferenceResolver storageReferenceResolver;
 
     @InjectMocks
     private ReportService reportService;
@@ -117,7 +121,7 @@ class ReportServiceTest {
         when(fileStorageService.resolveFileUrl("s3:reports/progress.pdf"))
                 .thenReturn("https://signed.example/progress.pdf");
         when(reportReviewRepository.findById(17)).thenReturn(Optional.of(review));
-        when(fileStorageService.resolveFileUrl("s3:corrections/progress-correction.pdf"))
+        when(storageReferenceResolver.resolveForDisplay("s3:corrections/progress-correction.pdf"))
                 .thenReturn("https://signed.example/progress-correction.pdf");
 
         List<ProgressReportResponseDto> result = reportService.getProgressReports();
@@ -129,7 +133,7 @@ class ReportServiceTest {
         assertEquals(OffsetDateTime.parse("2026-06-08T10:15:30Z"), result.getFirst().feedback().revisionDate());
 
         verify(reportReviewRepository).findById(17);
-        verify(fileStorageService).resolveFileUrl("s3:corrections/progress-correction.pdf");
+        verify(storageReferenceResolver).resolveForDisplay("s3:corrections/progress-correction.pdf");
     }
 
     @Test
@@ -158,7 +162,7 @@ class ReportServiceTest {
         when(fileStorageService.resolveFileUrl("s3:reports/final.pdf"))
                 .thenReturn("https://signed.example/final.pdf");
         when(reportReviewRepository.findById(16)).thenReturn(Optional.of(review));
-        when(fileStorageService.resolveFileUrl("s3:corrections/final-correction.pdf"))
+        when(storageReferenceResolver.resolveForDisplay("s3:corrections/final-correction.pdf"))
                 .thenReturn("https://signed.example/final-correction.pdf");
 
         List<FinalReportResponseDto> result = reportService.getFinalReports();
@@ -170,7 +174,45 @@ class ReportServiceTest {
         assertEquals(OffsetDateTime.parse("2026-06-07T10:15:30Z"), result.getFirst().feedback().revisionDate());
 
         verify(reportReviewRepository).findById(16);
-        verify(fileStorageService).resolveFileUrl("s3:corrections/final-correction.pdf");
+        verify(storageReferenceResolver).resolveForDisplay("s3:corrections/final-correction.pdf");
+    }
+
+    @Test
+    @DisplayName("getFinalReports resolves feedback links through the shared storage resolver")
+    void getFinalReportsResolvesFeedbackThroughSharedStorageResolver() {
+        User authenticatedUser = new User();
+        authenticatedUser.setId(7);
+
+        Project project = new Project();
+        project.setName("Projeto S3");
+
+        ReportArchive report = new ReportArchive();
+        report.setId(18);
+        report.setType(ReportType.RF);
+        report.setProject(project);
+        report.setCreateDate(OffsetDateTime.parse("2026-06-05T10:15:30Z"));
+        report.setUrlArchive("s3:reports/final.pdf");
+
+        ReportReview review = new ReportReview();
+        review.setReportId(18);
+        review.setComment("Boa entrega final...");
+        review.setCorrectionUrl("s3://fluxo--ages-2.0-alunos/dev/review/T2_20261.pdf");
+        review.setRevisionDate(OffsetDateTime.parse("2026-06-07T10:15:30Z"));
+
+        when(authenticatedUserService.getAuthenticatedUser()).thenReturn(authenticatedUser);
+        when(reportRepository.findByStudentUserId(7)).thenReturn(List.of(report));
+        when(fileStorageService.resolveFileUrl("s3:reports/final.pdf"))
+                .thenReturn("https://signed.example/final.pdf");
+        when(reportReviewRepository.findById(18)).thenReturn(Optional.of(review));
+        when(storageReferenceResolver.resolveForDisplay("s3://fluxo--ages-2.0-alunos/dev/review/T2_20261.pdf"))
+                .thenReturn("https://signed.example/review.pdf");
+
+        List<FinalReportResponseDto> result = reportService.getFinalReports();
+
+        assertEquals(1, result.size());
+        assertEquals("https://signed.example/review.pdf", result.getFirst().feedback().correctionUrl());
+
+        verify(storageReferenceResolver).resolveForDisplay("s3://fluxo--ages-2.0-alunos/dev/review/T2_20261.pdf");
     }
 
     @Test
