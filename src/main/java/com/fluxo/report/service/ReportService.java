@@ -1,6 +1,7 @@
 package com.fluxo.report.service;
 
 import com.fluxo.hours.repository.HoursReportRepository;
+import com.fluxo.infra.storage.StorageReferenceResolver;
 import com.fluxo.project.entity.Project;
 import com.fluxo.report.dto.FinalReportResponseDto;
 import com.fluxo.report.dto.ProgressReportResponseDto;
@@ -43,6 +44,7 @@ public class ReportService {
     private final SprintReportRepository sprintReportRepository;
     private final ReportReviewRepository reportReviewRepository;
     private final StudentProfileRepository studentProfileRepository;
+    private final StorageReferenceResolver storageReferenceResolver;
 
     public List<ProgressReportResponseDto> getProgressReports() {
         User authenticatedUser = authenticatedUserService.getAuthenticatedUser();
@@ -86,7 +88,7 @@ public class ReportService {
         return reportReviewRepository.findById(reportId)
                 .map(reportReview -> new ReportFeedbackResponseDto(
                         reportReview.getComment(),
-                        fileStorageService.resolveFileUrl(reportReview.getCorrectionUrl()),
+                        storageReferenceResolver.resolveForDisplay(reportReview.getCorrectionUrl()),
                         reportReview.getRevisionDate(),
                         project != null && project.getTeacherUser() != null
                                 ? project.getTeacherUser().getName()
