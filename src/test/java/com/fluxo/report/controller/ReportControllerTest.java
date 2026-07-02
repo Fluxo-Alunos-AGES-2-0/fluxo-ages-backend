@@ -20,8 +20,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.test.web.servlet.MockMvc;
@@ -191,14 +189,14 @@ class ReportControllerTest {
     @DisplayName("GET /report/template returns DOCX template for download")
     void testDownloadReportTemplateSuccess() throws Exception {
         byte[] templateBytes = "template content".getBytes(StandardCharsets.UTF_8);
-        Resource templateResource = new ByteArrayResource(templateBytes);
 
-        when(reportTemplateService.loadReportTemplate()).thenReturn(templateResource);
+        when(reportTemplateService.loadReportTemplate())
+                .thenReturn(new ReportTemplateService.ReportTemplateFile(templateBytes, "ages-IV-template.docx"));
 
         mockMvc.perform(get("/report/template"))
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, "application/vnd.openxmlformats-officedocument.wordprocessingml.document"))
-                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"report-template.docx\""))
+                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"ages-IV-template.docx\""))
                 .andExpect(content().bytes(templateBytes));
 
         verify(reportTemplateService, times(1)).loadReportTemplate();
