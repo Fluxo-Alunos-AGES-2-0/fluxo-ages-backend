@@ -9,6 +9,7 @@ public class OpenHoursReminderProperties {
 
     private boolean enabled = false;
     private String secret = "";
+    private Long thresholdMinutes;
     private long thresholdHours = 2;
     private long windowMinutes = 15;
 
@@ -28,6 +29,14 @@ public class OpenHoursReminderProperties {
         this.secret = secret;
     }
 
+    public Long getThresholdMinutes() {
+        return thresholdMinutes;
+    }
+
+    public void setThresholdMinutes(Long thresholdMinutes) {
+        this.thresholdMinutes = thresholdMinutes;
+    }
+
     public long getThresholdHours() {
         return thresholdHours;
     }
@@ -45,6 +54,9 @@ public class OpenHoursReminderProperties {
     }
 
     public Duration reminderAge() {
+        if (thresholdMinutes != null && thresholdMinutes > 0) {
+            return Duration.ofMinutes(thresholdMinutes);
+        }
         return Duration.ofHours(thresholdHours);
     }
 
