@@ -17,6 +17,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 import com.fluxo.project.exception.InvalidProjectImageException;
 import com.fluxo.project.exception.ProjectAccessDeniedException;
 import com.fluxo.project.exception.ProjectNotEditableException;
@@ -58,6 +59,12 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.badRequest()
                 .body(Map.of("error", errorMessage));
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<Map<String, String>> handleResponseStatusException(ResponseStatusException ex) {
+        return ResponseEntity.status(ex.getStatusCode())
+                .body(Map.of("error", ex.getReason() == null ? "Erro na requisicao" : ex.getReason()));
     }
 
     @ExceptionHandler(InvalidReportFileException.class)

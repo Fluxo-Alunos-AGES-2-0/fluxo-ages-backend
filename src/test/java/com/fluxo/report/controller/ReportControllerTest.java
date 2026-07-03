@@ -471,9 +471,9 @@ class ReportControllerTest {
     }
 
     @Test
-    @DisplayName("POST /report/sprint accepts valid sprint values 1-5")
+    @DisplayName("POST /report/sprint accepts valid sprint values 0-4")
     void testCreateSprintReportValidSprintRange() throws Exception {
-        for (int sprint = 1; sprint <= 5; sprint++) {
+        for (int sprint = 0; sprint <= 4; sprint++) {
             SprintReportRequestDto request = new SprintReportRequestDto(
                     sprint,
                     "Activity",

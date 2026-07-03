@@ -23,8 +23,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
@@ -33,6 +35,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -197,6 +200,162 @@ class ReportServiceTest {
         verify(fileStorageService).deleteFile("s3:reports/previous-progress.pdf");
         verify(reportReviewRepository).deleteChildByReportId(17);
         verify(reportArchiveRepository, never()).findByStudentUserIdAndProjectIdAndType(7, 11, ReportType.RA);
+    }
+
+    @Test
+    @DisplayName("confirmProgressReportUpload creates a new progress report when the student has no previous one")
+    void confirmProgressReportUploadCreatesNewReportWhenStudentHasNoPreviousOne() {
+        Project currentProject = new Project();
+        currentProject.setId(11);
+        currentProject.setName("Projeto Atual");
+
+        Team team = new Team();
+        team.setProject(currentProject);
+
+        User student = new User();
+        student.setId(7);
+
+        StudentProfile studentProfile = new StudentProfile();
+        studentProfile.setStudentUser(student);
+        studentProfile.setTeam(team);
+
+        when(studentProfileRepository.findByStudentUserId(7)).thenReturn(Optional.of(studentProfile));
+        when(fileStorageService.validateReportFileExists("s3:reports/current-progress.pdf", ReportType.RA, 7))
+                .thenReturn("s3:reports/current-progress.pdf");
+        when(userRepository.getReferenceById(7)).thenReturn(student);
+        when(reportArchiveRepository.findByStudentUserIdAndType(7, ReportType.RA))
+                .thenReturn(Optional.empty());
+        when(reportArchiveRepository.save(any(ReportArchive.class)))
+                .thenAnswer(invocation -> {
+                    ReportArchive report = invocation.getArgument(0);
+                    report.setId(31);
+                    return report;
+                });
+        when(fileStorageService.resolveFileUrl("s3:reports/current-progress.pdf"))
+                .thenReturn("https://signed.example/current-progress.pdf");
+
+        ReportArchiveResponseDto response = reportService.confirmProgressReportUpload("s3:reports/current-progress.pdf", 7);
+
+        ArgumentCaptor<ReportArchive> reportCaptor = ArgumentCaptor.forClass(ReportArchive.class);
+
+        verify(reportArchiveRepository).save(reportCaptor.capture());
+
+        ReportArchive savedReport = reportCaptor.getValue();
+        assertEquals(31, response.id());
+        assertEquals("https://signed.example/current-progress.pdf", response.archiveUrl());
+        assertEquals(ReportType.RA, savedReport.getType());
+        assertEquals(student, savedReport.getStudentUser());
+        assertEquals(currentProject, savedReport.getProject());
+        assertEquals("s3:reports/current-progress.pdf", savedReport.getUrlArchive());
+        assertNotNull(savedReport.getCreateDate());
+        assertNotNull(savedReport.getEditDate());
+
+        verify(fileStorageService, never()).deleteFile("s3:reports/current-progress.pdf");
+        verify(reportReviewRepository, never()).deleteChildByReportId(31);
+    }
+
+    @Test
+    @DisplayName("confirmFinalReportUpload replaces only the current project's final report")
+    void confirmFinalReportUploadReplacesOnlyCurrentProjectsFinalReport() {
+        Project currentProject = new Project();
+        currentProject.setId(11);
+        currentProject.setName("Projeto Atual");
+
+        Team team = new Team();
+        team.setProject(currentProject);
+
+        User student = new User();
+        student.setId(7);
+
+        StudentProfile studentProfile = new StudentProfile();
+        studentProfile.setStudentUser(student);
+        studentProfile.setTeam(team);
+
+        ReportArchive existingCurrentReport = new ReportArchive();
+        existingCurrentReport.setId(41);
+        existingCurrentReport.setType(ReportType.RF);
+        existingCurrentReport.setStudentUser(student);
+        existingCurrentReport.setProject(currentProject);
+        existingCurrentReport.setCreateDate(OffsetDateTime.parse("2026-06-05T10:15:30Z"));
+        existingCurrentReport.setEditDate(OffsetDateTime.parse("2026-06-05T10:15:30Z"));
+        existingCurrentReport.setGrade(BigDecimal.valueOf(8.5));
+        existingCurrentReport.setUrlArchive("s3:reports/final-current.pdf");
+
+        when(studentProfileRepository.findByStudentUserId(7)).thenReturn(Optional.of(studentProfile));
+        when(fileStorageService.validateReportFileExists("s3:reports/final-updated.pdf", ReportType.RF, 7))
+                .thenReturn("s3:reports/final-updated.pdf");
+        when(userRepository.getReferenceById(7)).thenReturn(student);
+        when(reportArchiveRepository.findByStudentUserIdAndProjectIdAndType(7, 11, ReportType.RF))
+                .thenReturn(Optional.of(existingCurrentReport));
+        when(reportArchiveRepository.save(existingCurrentReport)).thenReturn(existingCurrentReport);
+        when(fileStorageService.resolveFileUrl("s3:reports/final-updated.pdf"))
+                .thenReturn("https://signed.example/final-updated.pdf");
+
+        ReportArchiveResponseDto response = reportService.confirmFinalReportUpload("s3:reports/final-updated.pdf", 7);
+
+        assertEquals(41, response.id());
+        assertEquals("https://signed.example/final-updated.pdf", response.archiveUrl());
+        assertEquals(currentProject, existingCurrentReport.getProject());
+        assertEquals("s3:reports/final-updated.pdf", existingCurrentReport.getUrlArchive());
+        assertEquals(BigDecimal.valueOf(8.5), existingCurrentReport.getGrade());
+
+        verify(reportArchiveRepository).findByStudentUserIdAndProjectIdAndType(7, 11, ReportType.RF);
+        verify(reportArchiveRepository, never()).findByStudentUserIdAndType(7, ReportType.RF);
+        verify(fileStorageService).deleteFile("s3:reports/final-current.pdf");
+        verify(reportReviewRepository, never()).deleteChildByReportId(41);
+    }
+
+    @Test
+    @DisplayName("confirmFinalReportUpload creates a new final report when the current project has no previous file")
+    void confirmFinalReportUploadCreatesNewReportWhenCurrentProjectHasNoPreviousFile() {
+        Project currentProject = new Project();
+        currentProject.setId(11);
+        currentProject.setName("Projeto Atual");
+
+        Team team = new Team();
+        team.setProject(currentProject);
+
+        User student = new User();
+        student.setId(7);
+
+        StudentProfile studentProfile = new StudentProfile();
+        studentProfile.setStudentUser(student);
+        studentProfile.setTeam(team);
+
+        when(studentProfileRepository.findByStudentUserId(7)).thenReturn(Optional.of(studentProfile));
+        when(fileStorageService.validateReportFileExists("s3:reports/final-first.pdf", ReportType.RF, 7))
+                .thenReturn("s3:reports/final-first.pdf");
+        when(userRepository.getReferenceById(7)).thenReturn(student);
+        when(reportArchiveRepository.findByStudentUserIdAndProjectIdAndType(7, 11, ReportType.RF))
+                .thenReturn(Optional.empty());
+        when(reportArchiveRepository.save(any(ReportArchive.class)))
+                .thenAnswer(invocation -> {
+                    ReportArchive report = invocation.getArgument(0);
+                    report.setId(45);
+                    return report;
+                });
+        when(fileStorageService.resolveFileUrl("s3:reports/final-first.pdf"))
+                .thenReturn("https://signed.example/final-first.pdf");
+
+        ReportArchiveResponseDto response = reportService.confirmFinalReportUpload("s3:reports/final-first.pdf", 7);
+
+        ArgumentCaptor<ReportArchive> reportCaptor = ArgumentCaptor.forClass(ReportArchive.class);
+        verify(reportArchiveRepository).save(reportCaptor.capture());
+
+        ReportArchive savedReport = reportCaptor.getValue();
+        assertEquals(45, response.id());
+        assertEquals("https://signed.example/final-first.pdf", response.archiveUrl());
+        assertEquals(ReportType.RF, savedReport.getType());
+        assertEquals(currentProject, savedReport.getProject());
+        assertEquals(student, savedReport.getStudentUser());
+        assertEquals("s3:reports/final-first.pdf", savedReport.getUrlArchive());
+        assertNotNull(savedReport.getCreateDate());
+        assertNotNull(savedReport.getEditDate());
+
+        verify(reportArchiveRepository).findByStudentUserIdAndProjectIdAndType(7, 11, ReportType.RF);
+        verify(reportArchiveRepository, never()).findByStudentUserIdAndType(7, ReportType.RF);
+        verify(fileStorageService, never()).deleteFile("s3:reports/final-first.pdf");
+        verify(reportReviewRepository, never()).deleteChildByReportId(45);
     }
 
     @Test

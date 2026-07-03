@@ -1,9 +1,11 @@
 package com.fluxo.hours.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fluxo.hours.config.OpenHoursReminderProperties;
 import com.fluxo.hours.dto.*;
 import com.fluxo.hours.exception.ActiveHoursNotFoundException;
 import com.fluxo.hours.exception.HoursAlreadyOpenException;
+import com.fluxo.hours.service.HoursReminderService;
 import com.fluxo.hours.service.HoursReportService;
 import com.fluxo.hours.service.HoursService;
 import com.fluxo.infra.exception.GlobalExceptionHandler;
@@ -20,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -45,6 +48,12 @@ class HoursControllerUnitTest {
     
     @Mock
     private HoursReportService hoursReportService;
+
+    @Mock
+    private HoursReminderService hoursReminderService;
+
+    @Mock
+    private OpenHoursReminderProperties openHoursReminderProperties;
 
     private MockMvc mockMvc;
     private ObjectMapper objectMapper;
@@ -225,5 +234,36 @@ class HoursControllerUnitTest {
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("Nenhuma sessão ativa"));
+    }
+    @Test
+    @DisplayName("Should return 200 when open reminders are dispatched")
+    void shouldReturn200WhenOpenRemindersAreDispatched() throws Exception {
+        Duration reminderAge = Duration.ofHours(2);
+        Duration reminderWindow = Duration.ofMinutes(15);
+        OpenHoursReminderDispatchResponseDto dto = new OpenHoursReminderDispatchResponseDto(3, 2);
+
+        when(openHoursReminderProperties.isEnabled()).thenReturn(true);
+        when(openHoursReminderProperties.getSecret()).thenReturn("test-secret");
+        when(openHoursReminderProperties.reminderAge()).thenReturn(reminderAge);
+        when(openHoursReminderProperties.reminderWindow()).thenReturn(reminderWindow);
+        when(hoursReminderService.dispatchOpenHoursReminderEmails(reminderAge, reminderWindow)).thenReturn(dto);
+
+        mockMvc.perform(post("/hours/reminders/open/dispatch")
+                .header("X-Internal-Secret", "test-secret"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.matchedSessions").value(3))
+                .andExpect(jsonPath("$.sentEmails").value(2));
+    }
+
+    @Test
+    @DisplayName("Should return 403 when internal secret is invalid")
+    void shouldReturn403WhenInternalSecretIsInvalid() throws Exception {
+        when(openHoursReminderProperties.isEnabled()).thenReturn(true);
+        when(openHoursReminderProperties.getSecret()).thenReturn("test-secret");
+
+        mockMvc.perform(post("/hours/reminders/open/dispatch")
+                .header("X-Internal-Secret", "wrong-secret"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error").value("Segredo interno invalido"));
     }
 }
