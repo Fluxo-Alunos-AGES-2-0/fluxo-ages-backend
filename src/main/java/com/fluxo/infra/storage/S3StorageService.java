@@ -92,6 +92,18 @@ public class S3StorageService {
         }
     }
 
+    public byte[] downloadObject(String key) {
+        try {
+            return s3Client.getObjectAsBytes(GetObjectRequest.builder()
+                            .bucket(storageProperties.getS3().getBucket())
+                            .key(key)
+                            .build())
+                    .asByteArray();
+        } catch (RuntimeException e) {
+            throw new StorageException("NÃ£o foi possÃ­vel baixar o arquivo do S3.", e);
+        }
+    }
+
     public void assertObjectExists(String key) {
         try {
             s3Client.headObject(HeadObjectRequest.builder()

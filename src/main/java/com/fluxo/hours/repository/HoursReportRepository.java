@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import com.fluxo.hours.entity.HoursReport;
 import com.fluxo.hours.entity.HoursReportStatus;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,6 +17,8 @@ public interface HoursReportRepository extends JpaRepository<HoursReport, Intege
     boolean existsByStudentUserIdAndExitTimeIsNull(Integer userId);
 
     Optional<HoursReport> findFirstByStudentUserIdAndExitTimeIsNullOrderByEntryTimeDesc(Integer userId);
+
+    List<HoursReport> findByExitTimeIsNullAndEntryTimeBetween(OffsetDateTime start, OffsetDateTime end);
 
     List<HoursReport> findByStudentUserIdAndExitTimeIsNotNullOrderByEntryTimeDesc(Integer userId);
 

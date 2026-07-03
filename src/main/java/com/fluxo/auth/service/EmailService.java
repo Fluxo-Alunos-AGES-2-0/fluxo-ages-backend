@@ -6,6 +6,7 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -95,6 +96,36 @@ public class EmailService {
         System.out.println("E-mail de encerramento de horas enviado com sucesso para: " + to);
     }
 
+    public void sendOpenHoursReminderEmail(String to, String studentName, Instant entryTime, Instant reminderTime) {
+        String subject = "Lembrete: Suas horas ainda estao abertas";
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+        OffsetDateTime startDateTime = OffsetDateTime.ofInstant(entryTime, ZoneOffset.of("-03:00"));
+        OffsetDateTime currentDateTime = OffsetDateTime.ofInstant(reminderTime, ZoneOffset.of("-03:00"));
+
+        Duration duration = Duration.between(entryTime, reminderTime);
+        long totalHours = duration.toHours();
+        long minutes = duration.minusHours(totalHours).toMinutes();
+        String formattedOpenDuration = String.format("%dh%02dmin", totalHours, minutes);
+
+        String body = "Ola, " + studentName + "!\n\n"
+                + "Seu registro de horas continua aberto.\n\n"
+                + "Horario de inicio: " + startDateTime.format(formatter) + "\n"
+                + "Horario atual: " + currentDateTime.format(formatter) + "\n"
+                + "Tempo aberto: " + formattedOpenDuration + "\n\n"
+                + "Se voce concluiu a atividade, volte ao Fluxo e encerre o registro.\n\n"
+                + "Controle de Fluxo de Acesso da AGES.";
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(to);
+        message.setSubject(subject);
+        message.setText(body);
+        message.setFrom(emailFrom);
+
+        mailSender.send(message);
+
+        System.out.println("E-mail de lembrete de horas abertas enviado com sucesso para: " + to);
+    }
     private String buildResetPasswordUrl(String token) {
         return frontendBaseUrl.replaceAll("/$", "") + "/reset-password?token=" + token;
     }

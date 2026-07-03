@@ -1,8 +1,10 @@
 package com.fluxo.hours.controller;
 
+import com.fluxo.hours.config.OpenHoursReminderProperties;
 import com.fluxo.hours.dto.*;
 import com.fluxo.hours.entity.HoursReport;
 import com.fluxo.hours.service.HoursReportService;
+import com.fluxo.hours.service.HoursReminderService;
 import com.fluxo.hours.service.HoursService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -11,6 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +28,8 @@ public class HoursController {
 
     private final HoursService hoursService;
     private final HoursReportService hoursReportService;
+    private final HoursReminderService hoursReminderService;
+    private final OpenHoursReminderProperties openHoursReminderProperties;
 
     @PostMapping("/start")
     @Operation(summary = "Iniciar registro de hora", description = "Inicia a contagem de tempo de trabalho (check-in)")
@@ -101,5 +106,39 @@ public class HoursController {
     @GetMapping("/{id}")
     public ResponseEntity<HoursReport> getHourReport(@PathVariable Integer id){
         return ResponseEntity.ok(hoursReportService.getHoursReportById(id));
+    }
+
+    @PostMapping("/reminders/open/dispatch")
+    @Operation(
+            summary = "Disparar lembretes de horas abertas",
+            description = "Endpoint interno para envio de lembretes de horas abertas dentro da janela configurada."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Lembretes processados com sucesso"),
+        @ApiResponse(responseCode = "403", description = "Segredo interno invalido"),
+        @ApiResponse(responseCode = "503", description = "Feature desabilitada")
+    })
+    public ResponseEntity<OpenHoursReminderDispatchResponseDto> dispatchOpenHoursReminders(
+            @RequestHeader("X-Internal-Secret") String internalSecret
+    ) {
+        validateReminderDispatchRequest(internalSecret);
+
+        OpenHoursReminderDispatchResponseDto response = hoursReminderService.dispatchOpenHoursReminderEmails(
+                openHoursReminderProperties.reminderAge(),
+                openHoursReminderProperties.reminderWindow()
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+    private void validateReminderDispatchRequest(String internalSecret) {
+        if (!openHoursReminderProperties.isEnabled()) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Feature de lembrete desabilitada");
+        }
+
+        if (openHoursReminderProperties.getSecret().isBlank()
+                || !openHoursReminderProperties.getSecret().equals(internalSecret)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Segredo interno invalido");
+        }
     }
 }

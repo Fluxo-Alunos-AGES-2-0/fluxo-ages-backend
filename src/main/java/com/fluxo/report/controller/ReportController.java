@@ -20,6 +20,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -169,12 +170,12 @@ public class ReportController {
             @ApiResponse(responseCode = "404", description = "Template não encontrado")
     })
     public ResponseEntity<Resource> downloadReportTemplate() {
-        Resource templateFile = reportTemplateService.loadReportTemplate();
+        ReportTemplateService.ReportTemplateFile templateFile = reportTemplateService.loadReportTemplate();
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.wordprocessingml.document"))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"report-template.docx\"")
-                .body(templateFile);
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + templateFile.filename() + "\"")
+                .body(new ByteArrayResource(templateFile.content()));
     }
 
     @DeleteMapping("/{idReport}")
