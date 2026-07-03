@@ -7,8 +7,8 @@ import jakarta.validation.constraints.NotNull;
 
 public record SprintReportRequestDto(
         @NotNull(message = "A sprint é obrigatória")
-        @Min(value = 1, message = "A sprint deve ser entre 1 e 5")
-        @Max(value = 5, message = "A sprint deve ser entre 1 e 5")
+        @Min(value = 0, message = "A sprint deve ser entre 0 e 4")
+        @Max(value = 4, message = "A sprint deve ser entre 0 e 4")
         Integer sprint,
 
         @NotBlank(message = "As atividades previstas são obrigatórias")
