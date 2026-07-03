@@ -6,9 +6,17 @@ import java.time.OffsetDateTime;
 
 @Entity
 @Table(name = "report_review")
-@PrimaryKeyJoinColumn(name = "id_report")
 @Getter @Setter @NoArgsConstructor
-public class ReportReview extends Report {
+public class ReportReview {
+
+    @Id
+    @Column(name = "id_report")
+    private Integer reportId;
+
+    @OneToOne(optional = false, fetch = FetchType.LAZY)
+    @MapsId
+    @JoinColumn(name = "id_report", referencedColumnName = "id_report", nullable = false)
+    private Report report;
 
     @Column(nullable = false)
     private String comment;

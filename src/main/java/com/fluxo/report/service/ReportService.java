@@ -1,6 +1,7 @@
 package com.fluxo.report.service;
 
 import com.fluxo.hours.repository.HoursReportRepository;
+import com.fluxo.infra.storage.StorageReferenceResolver;
 import com.fluxo.project.entity.Project;
 import com.fluxo.report.dto.FinalReportResponseDto;
 import com.fluxo.report.dto.ProgressReportResponseDto;
@@ -43,24 +44,14 @@ public class ReportService {
     private final SprintReportRepository sprintReportRepository;
     private final ReportReviewRepository reportReviewRepository;
     private final StudentProfileRepository studentProfileRepository;
+    private final StorageReferenceResolver storageReferenceResolver;
 
     public List<ProgressReportResponseDto> getProgressReports() {
         User authenticatedUser = authenticatedUserService.getAuthenticatedUser();
 
-        return reportRepository.findByStudentUserId(authenticatedUser.getId())
-                .stream()
-                .filter(report -> report.getType() == ReportType.RA)
-                .map(report -> new ProgressReportResponseDto(
-                        report.getId(),
-                        report.getCreateDate(),
-                        report.getProject().getName(),
-                        report.getGrade(),
-                        report instanceof ReportArchive reportArchive
-                                ? fileStorageService.resolveFileUrl(reportArchive.getUrlArchive())
-                                : null,
-                        buildFeedback(report.getId(), report.getProject())
-                ))
-                .toList();
+        return reportArchiveRepository.findByStudentUserIdAndType(authenticatedUser.getId(), ReportType.RA)
+                .map(report -> List.of(toProgressReportResponse(report)))
+                .orElseGet(List::of);
     }
 
     public List<FinalReportResponseDto> getFinalReports() {
@@ -69,24 +60,39 @@ public class ReportService {
         return reportRepository.findByStudentUserId(authenticatedUser.getId())
                 .stream()
                 .filter(report -> report.getType() == ReportType.RF)
-                .map(report -> new FinalReportResponseDto(
-                        report.getId(),
-                        report.getCreateDate(),
-                        report.getProject().getName(),
-                        report.getGrade(),
-                        report instanceof ReportArchive reportArchive
-                                ? fileStorageService.resolveFileUrl(reportArchive.getUrlArchive())
-                                : null,
-                        buildFeedback(report.getId(), report.getProject())
-                ))
+                .map(this::toFinalReportResponse)
                 .toList();
+    }
+
+    private ProgressReportResponseDto toProgressReportResponse(ReportArchive report) {
+        return new ProgressReportResponseDto(
+                report.getId(),
+                report.getCreateDate(),
+                report.getProject().getName(),
+                report.getGrade(),
+                fileStorageService.resolveFileUrl(report.getUrlArchive()),
+                buildFeedback(report.getId(), report.getProject())
+        );
+    }
+
+    private FinalReportResponseDto toFinalReportResponse(Report report) {
+        return new FinalReportResponseDto(
+                report.getId(),
+                report.getCreateDate(),
+                report.getProject().getName(),
+                report.getGrade(),
+                report instanceof ReportArchive reportArchive
+                        ? fileStorageService.resolveFileUrl(reportArchive.getUrlArchive())
+                        : null,
+                buildFeedback(report.getId(), report.getProject())
+        );
     }
 
     private ReportFeedbackResponseDto buildFeedback(Integer reportId, Project project) {
         return reportReviewRepository.findById(reportId)
                 .map(reportReview -> new ReportFeedbackResponseDto(
                         reportReview.getComment(),
-                        fileStorageService.resolveFileUrl(reportReview.getCorrectionUrl()),
+                        storageReferenceResolver.resolveForDisplay(reportReview.getCorrectionUrl()),
                         reportReview.getRevisionDate(),
                         project != null && project.getTeacherUser() != null
                                 ? project.getTeacherUser().getName()
@@ -117,7 +123,8 @@ public class ReportService {
             Project projectRef,
             ReportType reportType,
             String fileReference,
-            ExistingReportFinder existingReportFinder) {
+            ExistingReportFinder existingReportFinder,
+            boolean resetEvaluationOnReplace) {
 
         User studentRef = userRepository.getReferenceById(studentId);
         Optional<ReportArchive> existingReportOpt = existingReportFinder.find(studentId, projectRef);
@@ -127,6 +134,10 @@ public class ReportService {
             report = existingReportOpt.get();
             if (!fileReference.equals(report.getUrlArchive())) {
                 fileStorageService.deleteFile(report.getUrlArchive());
+            }
+            report.setProject(projectRef);
+            if (resetEvaluationOnReplace) {
+                resetReportEvaluation(report);
             }
             report.setEditDate(OffsetDateTime.now());
         } else {
@@ -140,6 +151,13 @@ public class ReportService {
 
         report.setUrlArchive(fileReference);
         return reportArchiveRepository.save(report);
+    }
+
+    private void resetReportEvaluation(ReportArchive report) {
+        if (report.getId() != null && reportReviewRepository.existsChildByReportId(report.getId())) {
+            reportReviewRepository.deleteChildByReportId(report.getId());
+        }
+        report.setGrade(null);
     }
 
     private ReportArchiveResponseDto buildResponse(ReportArchive report) {
@@ -177,7 +195,8 @@ public class ReportService {
                 fileReference,
                 studentId,
                 ReportType.RA,
-                (id, project) -> reportArchiveRepository.findByStudentUserIdAndProjectIdAndType(id, project.getId(), ReportType.RA)
+                (id, project) -> reportArchiveRepository.findByStudentUserIdAndType(id, ReportType.RA),
+                true
         );
     }
 
@@ -187,7 +206,8 @@ public class ReportService {
                 fileReference,
                 studentId,
                 ReportType.RF,
-                (id, project) -> reportArchiveRepository.findByStudentUserIdAndProjectIdAndType(id, project.getId(), ReportType.RF)
+                (id, project) -> reportArchiveRepository.findByStudentUserIdAndProjectIdAndType(id, project.getId(), ReportType.RF),
+                false
         );
     }
 
@@ -195,7 +215,8 @@ public class ReportService {
             String fileReference,
             Integer studentId,
             ReportType reportType,
-            ExistingReportFinder existingReportFinder) {
+            ExistingReportFinder existingReportFinder,
+            boolean resetEvaluationOnReplace) {
 
         Project projectRef = findCurrentProject(studentId);
         String canonicalFileReference = fileStorageService.validateReportFileExists(fileReference, reportType, studentId);
@@ -205,7 +226,8 @@ public class ReportService {
                 projectRef,
                 reportType,
                 canonicalFileReference,
-                existingReportFinder
+                existingReportFinder,
+                resetEvaluationOnReplace
         );
 
         return buildResponse(savedReport);
